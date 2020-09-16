@@ -1,4 +1,10 @@
+import { UserId, UserName } from './types';
+
 export interface SerializedUser {
-  id: string;
-  name: string;
+  id: UserId;
+  name: UserName;
+}
+
+export function serializeUser({ id, name }: SerializedUser) {
+  return { id, name };
 }

@@ -1,65 +1,43 @@
-import { PeerConnection } from './webrtc';
 import { SerializedUser } from '../../shared/SerializedUser';
 import { renderUsers } from './ui';
+import { UserId, UserName } from '../../shared/types';
+import { User } from './User';
 
 let users: User[] = [];
-let onClick: Function;
 
-export function onUserClicked(_onClick: Function) {
-  onClick = _onClick;
+export function getUserById(id: UserId) {
+  return users.find(x => x.id === id);
+}
+
+export function getUserByName(name: UserName) {
+  return users.find(x => x.name === name);
 }
 
 export function setUserList(list: SerializedUser[]) {
-  users = list.map(unserializeUser);
-  renderUsers(users, onClick);
+  users = list.map(unserializeUser).map(x => getUserById(x.id) || x);
+  refreshUserList();
 }
 
 function unserializeUser(user: SerializedUser) {
   return new User(user);
 }
 
-export function getUserByName(name: string) {
-  const user = users.find(x => x.name === name);
-
-  if (!user) {
-    throw new Error(`Can't find user "${name}"`);
-  }
-
-  return user;
-}
-
 export function userConnected(user: SerializedUser) {
   console.log('CONNECTED', user);
   users.push(unserializeUser(user));
-  renderUsers(users, onClick);
+  refreshUserList();
 }
 
 export function userDisconnected(user: SerializedUser) {
   console.log('DISCONNECTED', user);
   users = users.filter(x => x.id !== user.id);
-  renderUsers(users, onClick);
+  refreshUserList();
 }
 
-export class User {
-  id;
-  name;
+export function getUserList() {
+  return users;
+}
 
-  private connection: PeerConnection | null = null;
-  get isCalling() {
-    return Boolean(this.connection);
-  }
-
-  constructor(serialized: SerializedUser) {
-    this.id = serialized.id;
-    this.name = serialized.name;
-  }
-
-  callStarted(connection: PeerConnection) {
-    this.connection = connection;
-  }
-
-  hangup() {
-    this.connection?.end();
-    this.connection = null;
-  }
+export function refreshUserList() {
+  renderUsers(users);
 }

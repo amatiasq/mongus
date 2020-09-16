@@ -1,66 +1,82 @@
+import { RoomMessage } from './../../shared/communication/RoomMessage';
 import { createServer } from 'http';
 
 import {
-  IncomingMessage,
-  IncomingMessageType,
-} from '../../shared/IncomingMessage';
-import {
-  OutgoingMessage,
-  OutgoingMessageType,
-} from '../../shared/OutgoingMessage';
+  ClientMessage,
+  ClientMessageType,
+} from '../../shared/communication/ClientMessage';
+import { ClientToClientMessage } from '../../shared/communication/ClientToClientMessage';
+import { ServerMessageType } from '../../shared/communication/ServerMessage';
+import { serializeUser } from '../../shared/SerializedUser';
+import { UserId, UserName } from '../../shared/types';
+import { Vector } from '../../shared/Vector';
 import {
   getConnectedUsers,
-  getUser,
+  getUserById,
+  getUserBySocket,
   isUsernameAvailable,
   registerUser,
   removeUser,
-  serializeUser,
-  User,
 } from './users';
 import { bindWebsocketTo, NiceSocket } from './websocket';
 
-const port = process.env.PORT || 9000;
-const server = createServer((req, res) => {});
+const port = process.env.PORT || 17965;
+const server = createServer();
 const webSocketServer = bindWebsocketTo(server);
-
-webSocketServer.onConnection(ws => {
-  ws.onJsonMessage<IncomingMessage>(data => processMessage(ws, data));
-  ws.on('close', () => logout(ws));
-
-  ws.sendJson<OutgoingMessage>({
-    type: OutgoingMessageType.HANDSHAKE,
-    message: 'Salve, adalid...',
-  });
-});
 
 server.listen(port, () => console.log(`Websocket server ready at ${port}`));
 
-function processMessage(ws: NiceSocket, data: IncomingMessage) {
-  const user = ws as User;
+webSocketServer.onConnection(ws => {
+  ws.on('close', () => logout(ws));
+  ws.onJsonMessage(data => processMessage(ws, data));
+  ws.sendJson({ type: ServerMessageType.HANDSHAKE });
+});
 
+function processMessage(ws: NiceSocket, data: ClientMessage) {
   switch (data.type) {
-    case IncomingMessageType.LOGIN:
+    case ClientMessageType.ERROR:
+      return reportError(ws, data.message);
+    case ClientMessageType.LOGIN:
       return attemptLogin(ws, data.name);
-    case IncomingMessageType.LOGOUT:
+    case ClientMessageType.LOGOUT:
       return logout(ws);
-    case IncomingMessageType.SEND_OFFER:
-      return deflect(user, data, OutgoingMessageType.RECEIVE_OFFER);
-    case IncomingMessageType.SEND_ANSWER:
-      return deflect(user, data, OutgoingMessageType.RECEIVE_ANSWER);
-    case IncomingMessageType.SEND_CANDIDATE:
-      return deflect(user, data, OutgoingMessageType.RECEIVE_CANDIDATE);
+    case ClientMessageType.SEND_TO_USER:
+      return deflect(ws, data.to, data.message);
+    case ClientMessageType.SEND_TO_ROOM:
+      return broadcast(ws, data.message);
     default:
       ws.sendJson({
-        type: OutgoingMessageType.ERROR,
-        message: `DAFUK U MEAN WITH ${data.type}!?!?`,
+        type: ServerMessageType.ERROR,
+        message: `DAFUK U MEAN WITH ${(data as any).type}!?!?`,
       });
   }
 }
 
-function attemptLogin(ws: NiceSocket, name: string): void {
+function broadcast(ws: NiceSocket, message: RoomMessage) {
+  const me = getAuthenticatedUser(ws);
+  if (!me) return;
+
+  const others = getConnectedUsers().filter(x => x !== me);
+
+  others.forEach(x =>
+    x.sendJson({
+      type: ServerMessageType.MESSAGE_TO_ROOM,
+      from: me.id,
+      message,
+    }),
+  );
+}
+
+function reportError(ws: NiceSocket, message: string) {
+  const user = getUserBySocket(ws);
+  const name = user?.name || '(unknown)';
+  console.error(`Error from ${name}: ${message}`);
+}
+
+function attemptLogin(ws: NiceSocket, name: UserName): void {
   if (!isUsernameAvailable(name)) {
-    return ws.sendJson<OutgoingMessage>({
-      type: OutgoingMessageType.LOGIN_RESULT,
+    return ws.sendJson({
+      type: ServerMessageType.LOGIN_RESULT,
       success: false,
       message: 'Username is unavailable',
     });
@@ -69,15 +85,16 @@ function attemptLogin(ws: NiceSocket, name: string): void {
   const otherUsers = getConnectedUsers();
   const newUser = registerUser(ws, name);
 
-  ws.sendJson<OutgoingMessage>({
-    type: OutgoingMessageType.LOGIN_RESULT,
+  ws.sendJson({
+    type: ServerMessageType.LOGIN_RESULT,
     success: true,
     users: otherUsers.map(serializeUser),
+    name,
   });
 
   for (const user of otherUsers) {
-    user.sendJson<OutgoingMessage>({
-      type: OutgoingMessageType.USER_CONNECTED,
+    user.socket.sendJson({
+      type: ServerMessageType.USER_CONNECTED,
       user: serializeUser(newUser),
     });
   }
@@ -86,38 +103,56 @@ function attemptLogin(ws: NiceSocket, name: string): void {
 }
 
 function logout(ws: NiceSocket) {
-  if (!removeUser(ws)) {
+  const gone = getUserBySocket(ws);
+
+  if (!gone) {
     return;
   }
 
-  const gone = ws as User;
+  removeUser(gone);
   const users = getConnectedUsers();
 
   for (const user of users) {
-    user.sendJson<OutgoingMessage>({
-      type: OutgoingMessageType.USER_DISCONNECTED,
+    user.sendJson({
+      type: ServerMessageType.USER_DISCONNECTED,
       user: serializeUser(gone),
     });
   }
 
-  console.log(`DISCONNETED: ${gone.name}`);
+  console.log(`DISCONNECTED: ${gone.name}`);
 }
 
-function deflect(from: User, data: IncomingMessage, type: OutgoingMessageType) {
-  const { type: _, to, ...rest } = data as IncomingMessage & { to: string };
-  const target = getUser(to);
+function deflect(ws: NiceSocket, to: UserId, message: ClientToClientMessage) {
+  const user = getAuthenticatedUser(ws);
+  if (!user) return;
+
+  const target = getUserById(to);
 
   if (!target) {
-    return from.sendJson<OutgoingMessage>({
-      type: OutgoingMessageType.ERROR,
+    return user.sendJson({
+      type: ServerMessageType.ERROR,
       message: `User "${name}" is not connected`,
     });
   }
 
-  console.log(`DEFLECT from ${from.name} to ${to} - ${_}`);
+  console.log(`DEFLECT from ${user.name} to ${target.name} - ${message.type}`);
+
   target.sendJson({
-    type,
-    from: from.name,
-    ...rest,
+    type: ServerMessageType.MESSAGE_FROM_USER,
+    from: user.id,
+    message,
+  });
+}
+
+function getAuthenticatedUser(ws: NiceSocket) {
+  const user = getUserBySocket(ws);
+
+  if (user) {
+    return user;
+  }
+
+  ws.sendJson({
+    type: ServerMessageType.ERROR,
+    message: `You need to be authenticated`,
   });
 }

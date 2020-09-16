@@ -5,7 +5,6 @@ export function captureAudio() {
 export async function playAudio(stream: MediaStream) {
   const audio = prepareAudio(stream);
   await audio.play();
-  console.log('playing');
 }
 
 function prepareAudio(stream: MediaStream) {

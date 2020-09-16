@@ -1,12 +1,22 @@
 import { IncomingMessage, Server } from 'http';
 import { Server as WebSocketServer } from 'ws';
 
+import { ClientMessage } from '../../shared/communication/ClientMessage';
+import { ServerMessage } from '../../shared/communication/ServerMessage';
+
 import WebSocket = require('ws');
 
-export declare class NiceSocket extends WebSocket {
-  sendJson<T extends object>(value: T): void;
-  onJsonMessage<T extends object>(
-    listener: (this: NiceSocket, data: T) => void,
+export interface INiceSocket {
+  sendJson(value: ServerMessage): void;
+  onJsonMessage(
+    listener: (this: NiceSocket, data: ClientMessage) => void,
+  ): this;
+}
+
+export declare class NiceSocket extends WebSocket implements INiceSocket {
+  sendJson(value: ServerMessage): void;
+  onJsonMessage(
+    listener: (this: NiceSocket, data: ClientMessage) => void,
   ): this;
 }
 

@@ -1,48 +1,70 @@
-import { IncomingMessageType } from '../../shared/IncomingMessage';
 import {
-  OutgoingMessage,
-  OutgoingMessageType,
-} from '../../shared/OutgoingMessage';
+  RoomMessage,
+  RoomMessageType,
+} from './../../shared/communication/RoomMessage';
+import { ClientMessageType } from '../../shared/communication/ClientMessage';
+import { ClientToClientMessageType } from '../../shared/communication/ClientToClientMessage';
+import {
+  ServerMessage,
+  ServerMessageType,
+} from '../../shared/communication/ServerMessage';
+import { UserName, UserId } from '../../shared/types';
 import { captureAudio } from './audio';
-import { forceUserToSetName, renderUsername } from './ui';
+import { runFrame } from './game';
+import { PeerChannel } from './PeerChannel';
+import { Socket } from './Socket';
+import { getUserName, renderUsername, whenUserClicked } from './ui';
+import { User } from './User';
 import {
-  getUserByName,
-  onUserClicked,
+  getUserById,
   setUserList,
-  User,
   userConnected,
   userDisconnected,
 } from './users';
-import { PeerConnection } from './webrtc';
-import { Socket } from './websocket';
+import { Vector } from '../../shared/Vector';
 
-const t = OutgoingMessageType;
+const t = ServerMessageType;
 const socket = new Socket('wss://amongus.amatiasq.com');
 
-onUserClicked(toggleCall);
+whenUserClicked(toggleCall);
 
 socket.onMessage(t.HANDSHAKE, login);
 socket.onMessage(t.LOGIN_RESULT, data => handleLoginResult(data));
 socket.onMessage(t.USER_CONNECTED, data => userConnected(data.user));
 socket.onMessage(t.USER_DISCONNECTED, data => userDisconnected(data.user));
 
-socket.onMessage(t.RECEIVE_OFFER, data => {
-  const user = getUserByName(data.from);
-  return receiveOffer(user, data.offer);
+socket.onMessage(t.MESSAGE_TO_ROOM, ({ from, message }) => {
+  const user = getValidUser(from);
+  if (!user) return;
+
+  switch (message.type) {
+    case RoomMessageType.POSITION_CHANGED:
+      return updatePosition(user, message.position);
+  }
 });
 
-function login() {
-  const name = forceUserToSetName();
-  renderUsername(name);
+socket.onMessage(t.MESSAGE_FROM_USER, ({ from, message }) => {
+  const user = getValidUser(from);
+  if (!user) return;
 
-  socket.send({
-    type: IncomingMessageType.LOGIN,
-    name,
-  });
+  switch (message.type) {
+    case ClientToClientMessageType.RPC_OFFER:
+      return receiveOffer(user, message.offer);
+    case ClientToClientMessageType.RPC_ANSWER:
+      return user.acceptAnswer(message.answer);
+    case ClientToClientMessageType.REJECT_OFFER:
+      return user.hangup();
+  }
+});
+
+async function login() {
+  const name = await getUserName();
+  renderUsername(name);
+  socket.send({ type: ClientMessageType.LOGIN, name });
 }
 
-function handleLoginResult(data: OutgoingMessage) {
-  if (data.type !== OutgoingMessageType.LOGIN_RESULT) {
+function handleLoginResult(data: ServerMessage) {
+  if (data.type !== ServerMessageType.LOGIN_RESULT) {
     return;
   }
 
@@ -54,6 +76,34 @@ function handleLoginResult(data: OutgoingMessage) {
   }
 
   setUserList(data.users);
+  startGame(data.name);
+}
+
+function startGame(name: UserName) {
+  const me = new User({ id: 'me' as UserId, name });
+
+  frame();
+
+  function frame() {
+    const before = { ...me.position };
+    runFrame(me);
+
+    if (before.x !== me.position.x || before.y !== me.position.y) {
+      socket.send({
+        type: ClientMessageType.SEND_TO_ROOM,
+        message: {
+          type: RoomMessageType.POSITION_CHANGED,
+          position: me.position,
+        },
+      });
+    }
+
+    requestAnimationFrame(frame);
+  }
+}
+
+function updatePosition(user: User, position: Vector) {
+  user.position = position;
 }
 
 function toggleCall(user: User) {
@@ -61,10 +111,8 @@ function toggleCall(user: User) {
 }
 
 async function callUser(user: User) {
-  const conn = new PeerConnection(user, m => socket.send(m));
+  const conn = new PeerChannel(user, m => socket.send(m));
   const stream = await captureAudio();
-
-  listenToSocket(conn, socket, user);
 
   stream.getTracks().forEach(x => conn.addTrack(x, stream));
   conn.sendOffer();
@@ -74,34 +122,40 @@ async function callUser(user: User) {
 }
 
 async function receiveOffer(user: User, offer: RTCSessionDescription) {
-  const conn = new PeerConnection(user, m => socket.send(m));
-  const stream = await captureAudio();
+  console.log(`${user.name} quiere iniciar una llamada`);
+  const shouldAnswer = await confirm(
+    `${user.name} quiere iniciar una llamada.<br>Contestar?`,
+  );
 
-  listenToSocket(conn, socket, user);
+  if (!shouldAnswer) {
+    console.log(`Llamada de ${user.name} rechazada`);
+    socket.send({
+      type: ClientMessageType.SEND_TO_USER,
+      to: user.id,
+      message: { type: ClientToClientMessageType.REJECT_OFFER },
+    });
+    return;
+  }
 
-  stream.getTracks().forEach(x => conn.addTrack(x, stream));
-  conn.receiveOffer(offer);
+  console.log(`Llamada de ${user.name} aceptada`);
+  const conn = new PeerChannel(user, m => socket.send(m));
+
+  conn.acceptOffer(offer);
+  console.log(`Enviando respuesta a ${user.name}...`);
 
   user.callStarted(conn);
   return conn;
 }
 
-function listenToSocket(conn: PeerConnection, socket: Socket, user: User) {
-  socket.onMessage(
-    OutgoingMessageType.RECEIVE_ANSWER,
-    ifFromUser(message => conn.receiveAnswer(message.answer)),
-  );
+function getValidUser(id: UserId) {
+  const user = getUserById(id);
 
-  socket.onMessage(
-    OutgoingMessageType.RECEIVE_CANDIDATE,
-    ifFromUser(message => conn.receiveCandidate(message.candidate)),
-  );
-
-  function ifFromUser<T>(action: (x: T) => void) {
-    return (message: T) => {
-      if ((message as any).from === user.name) {
-        return action(message);
-      }
-    };
+  if (user) {
+    return user;
   }
+
+  socket.send({
+    type: ClientMessageType.ERROR,
+    message: `Received message from unknown user ${id}`,
+  });
 }
