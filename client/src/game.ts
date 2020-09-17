@@ -1,6 +1,6 @@
 import { Vector } from '../../shared/Vector';
 import { render } from './canvas';
-import { isPressed, Action } from './interaction';
+import { Action, keyboard } from './interaction';
 import { User } from './User';
 import { getUserList } from './users';
 
@@ -13,8 +13,8 @@ export function runFrame(user: User) {
 }
 
 function movePlayer(position: Vector) {
-  if (isPressed(Action.UP)) position.y -= SPEED;
-  if (isPressed(Action.DOWN)) position.y += SPEED;
-  if (isPressed(Action.LEFT)) position.x -= SPEED;
-  if (isPressed(Action.RIGHT)) position.x += SPEED;
+  if (keyboard.isActive(Action.UP)) position.y -= SPEED;
+  if (keyboard.isActive(Action.DOWN)) position.y += SPEED;
+  if (keyboard.isActive(Action.LEFT)) position.x -= SPEED;
+  if (keyboard.isActive(Action.RIGHT)) position.x += SPEED;
 }
