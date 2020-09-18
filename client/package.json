@@ -36,8 +36,8 @@
     "webpack-merge": "4.2.2"
   },
   "dependencies": {
-    "@amatiasq/json-socket": "^1.0.4",
-    "@amatiasq/peer-connection": "^2.0.3",
-    "freeice": "^2.2.2"
+    "@amatiasq/json-socket": "^2.0.1",
+    "@amatiasq/keyboard": "^0.1.0",
+    "@amatiasq/peer-connection": "^3.0.1"
   }
 }

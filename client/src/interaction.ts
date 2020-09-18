@@ -1,4 +1,4 @@
-import { KeyboardController } from './keyboard/KeyboardController';
+import { KeyboardController } from '@amatiasq/keyboard';
 
 export enum Action {
   UP,
