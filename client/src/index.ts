@@ -24,6 +24,7 @@ import {
 import { Vector } from '../../shared/Vector';
 
 const t = ServerMessageType;
+// const socket = new Socket('ws://localhost:17965');
 const socket = new Socket('wss://amongus.amatiasq.com');
 
 whenUserClicked(toggleCall);

@@ -1,15 +1,19 @@
-import { RoomMessage } from './../../shared/communication/RoomMessage';
 import { createServer } from 'http';
+
+import { NiceSocketServer } from '@amatiasq/nice-socket';
 
 import {
   ClientMessage,
   ClientMessageType,
 } from '../../shared/communication/ClientMessage';
 import { ClientToClientMessage } from '../../shared/communication/ClientToClientMessage';
-import { ServerMessageType } from '../../shared/communication/ServerMessage';
+import { RoomMessage } from '../../shared/communication/RoomMessage';
+import {
+  ServerMessage,
+  ServerMessageType,
+} from '../../shared/communication/ServerMessage';
 import { serializeUser } from '../../shared/SerializedUser';
 import { UserId, UserName } from '../../shared/types';
-import { Vector } from '../../shared/Vector';
 import {
   getConnectedUsers,
   getUserById,
@@ -18,11 +22,13 @@ import {
   registerUser,
   removeUser,
 } from './users';
-import { bindWebsocketTo, NiceSocket } from './websocket';
+import { Socket } from './websocket';
 
 const port = process.env.PORT || 17965;
 const server = createServer();
-const webSocketServer = bindWebsocketTo(server);
+const webSocketServer = new NiceSocketServer<ClientMessage, ServerMessage>(
+  server,
+);
 
 server.listen(port, () => console.log(`Websocket server ready at ${port}`));
 
@@ -32,7 +38,7 @@ webSocketServer.onConnection(ws => {
   ws.sendJson({ type: ServerMessageType.HANDSHAKE });
 });
 
-function processMessage(ws: NiceSocket, data: ClientMessage) {
+function processMessage(ws: Socket, data: ClientMessage) {
   switch (data.type) {
     case ClientMessageType.ERROR:
       return reportError(ws, data.message);
@@ -52,7 +58,7 @@ function processMessage(ws: NiceSocket, data: ClientMessage) {
   }
 }
 
-function broadcast(ws: NiceSocket, message: RoomMessage) {
+function broadcast(ws: Socket, message: RoomMessage) {
   const me = getAuthenticatedUser(ws);
   if (!me) return;
 
@@ -67,13 +73,13 @@ function broadcast(ws: NiceSocket, message: RoomMessage) {
   );
 }
 
-function reportError(ws: NiceSocket, message: string) {
+function reportError(ws: Socket, message: string) {
   const user = getUserBySocket(ws);
   const name = user?.name || '(unknown)';
   console.error(`Error from ${name}: ${message}`);
 }
 
-function attemptLogin(ws: NiceSocket, name: UserName): void {
+function attemptLogin(ws: Socket, name: UserName): void {
   if (!isUsernameAvailable(name)) {
     return ws.sendJson({
       type: ServerMessageType.LOGIN_RESULT,
@@ -102,7 +108,7 @@ function attemptLogin(ws: NiceSocket, name: UserName): void {
   console.log(`CONNECTED: ${name}`);
 }
 
-function logout(ws: NiceSocket) {
+function logout(ws: Socket) {
   const gone = getUserBySocket(ws);
 
   if (!gone) {
@@ -122,7 +128,7 @@ function logout(ws: NiceSocket) {
   console.log(`DISCONNECTED: ${gone.name}`);
 }
 
-function deflect(ws: NiceSocket, to: UserId, message: ClientToClientMessage) {
+function deflect(ws: Socket, to: UserId, message: ClientToClientMessage) {
   const user = getAuthenticatedUser(ws);
   if (!user) return;
 
@@ -144,7 +150,7 @@ function deflect(ws: NiceSocket, to: UserId, message: ClientToClientMessage) {
   });
 }
 
-function getAuthenticatedUser(ws: NiceSocket) {
+function getAuthenticatedUser(ws: Socket) {
   const user = getUserBySocket(ws);
 
   if (user) {

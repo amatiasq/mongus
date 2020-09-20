@@ -1,6 +1,6 @@
 import { UserId, UserName } from '../../shared/types';
 import { User } from './User';
-import { NiceSocket } from './websocket';
+import { Socket } from './websocket';
 
 const users: User[] = [];
 
@@ -12,7 +12,7 @@ export function getUserByName(name: UserName) {
   return users.find(x => x.name === name);
 }
 
-export function getUserBySocket(ws: NiceSocket) {
+export function getUserBySocket(ws: Socket) {
   return users.find(x => x.socket === ws);
 }
 
@@ -20,7 +20,7 @@ export function isUsernameAvailable(name: UserName) {
   return users.every(x => x.name !== name);
 }
 
-export function registerUser(ws: NiceSocket, name: UserName) {
+export function registerUser(ws: Socket, name: UserName) {
   const user = new User(ws, name);
   users.push(user);
   return user;
