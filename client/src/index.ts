@@ -1,13 +1,23 @@
+import { Action } from '../../shared/Action';
+import { KeyboardController, KeyCode } from '@amatiasq/keyboard';
 import { ClientMessageType } from '../../shared/communication/ClientMessage';
 import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { UserId } from '../../shared/types';
 import { render } from './canvas';
 import { Socket } from './Socket';
 import { User } from './User';
+import { watchKeyboard } from './interactions';
 
 const socket = new Socket('ws://localhost:17965');
 const uuid = `${Math.random()}${Date.now()}${Math.random()}©AMONGUS®` as UserId;
 let users: User[] = [];
+
+watchKeyboard(actions =>
+  socket.send({
+    type: ClientMessageType.USER_ACTIONS,
+    actions: Array.from(actions),
+  }),
+);
 
 requestAnimationFrame(function self() {
   render(users);

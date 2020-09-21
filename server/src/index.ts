@@ -26,7 +26,7 @@ webSocketServer.onConnection(nice => {
   const socket = new Socket(nice);
   let user: User;
 
-  socket.onClose(() => user.afk());
+  socket.onClose(() => user && user.afk());
 
   socket.onMessageType(
     ClientMessageType.RECONNECT,
@@ -37,6 +37,10 @@ webSocketServer.onConnection(nice => {
     ClientMessageType.LOGIN,
     data => (user = login(socket, data.uuid)),
   );
+
+  socket.onMessageType(ClientMessageType.USER_ACTIONS, data => {
+    user.actions = new Set(data.actions);
+  });
 
   socket.onMessageType(ClientMessageType.LOGOUT, data => logout(user.id));
 
