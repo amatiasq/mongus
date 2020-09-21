@@ -5,3 +5,41 @@ https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/pc1/j
 
 https://webrtc.github.io/samples/src/content/peerconnection/audio/
 https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/audio/js/main.js
+
+---
+
+## POC
+
+### Stage 1
+
+- 2 players
+- see each other
+- running
+
+### Stage 2
+
+- Interaction: killing
+- ratio vision
+
+### Stage 3
+
+- VOIP
+  - With turn on/off
+
+### Stage 4
+
+- Map & colliders
+
+### Stage 5
+
+- Tasks
+- Global task management
+
+### Stage 6
+
+- Emergency meeting & report
+- Discussion & voting
+
+### Stage 7
+
+- Sabotage

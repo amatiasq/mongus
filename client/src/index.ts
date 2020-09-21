@@ -22,12 +22,14 @@ import {
   userDisconnected,
 } from './users';
 import { Vector } from '../../shared/Vector';
+import { init } from './assets';
 
 const t = ServerMessageType;
 // const socket = new Socket('ws://localhost:17965');
 const socket = new Socket('wss://amongus.amatiasq.com');
 
 whenUserClicked(toggleCall);
+init();
 
 socket.onMessage(t.HANDSHAKE, login);
 socket.onMessage(t.LOGIN_RESULT, data => handleLoginResult(data));

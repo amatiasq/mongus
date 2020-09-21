@@ -2,6 +2,7 @@ const path = require('path');
 // const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const webpackMerge = require('webpack-merge');
 
@@ -45,6 +46,7 @@ module.exports = ({ mode, presets } = { mode: 'production', presets: [] }) => {
         filename: '[name].js',
         sourceMapFilename: '[file].map',
         path: path.resolve(__dirname, 'dist'),
+        // publicPath: '/assets/',
       },
       optimization: {
         minimize: false,
@@ -59,6 +61,9 @@ module.exports = ({ mode, presets } = { mode: 'production', presets: [] }) => {
       },
       plugins: [
         new CleanWebpackPlugin({}),
+        new CopyWebpackPlugin({
+          patterns: [{ from: 'assets', to: 'assets' }],
+        }),
         new HtmlWebPackPlugin({ template: 'index.html' }),
       ],
     },
