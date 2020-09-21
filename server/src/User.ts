@@ -1,27 +1,33 @@
-import { v4 as uuidv4 } from 'uuid';
+import { SerializedUser, serializeUser } from '../../shared/SerializedUser';
+import { UserId } from '../../shared/types';
+import { Socket } from './Socket';
 
-import { ClientMessage } from '../../shared/communication/ClientMessage';
-import { ServerMessage } from '../../shared/communication/ServerMessage';
-import { SerializedUser } from '../../shared/SerializedUser';
-import { UserId, UserName } from '../../shared/types';
-import { ISocket, Socket } from './websocket';
+export class User implements SerializedUser {
+  //#region AFK
+  private afkSince: number | null = null;
 
-export class User implements SerializedUser, ISocket {
-  id = uuidv4() as UserId;
-
-  constructor(public readonly socket: Socket, public readonly name: UserName) {}
-
-  sendJson(value: ServerMessage): void {
-    return this.socket.sendJson(value);
+  get isAfk() {
+    return this.afkSince != null && Date.now() - this.afkSince > 1000;
   }
 
-  onJsonMessage(listener: (this: ISocket, data: ClientMessage) => void): this {
-    this.socket.onJsonMessage(listener);
-    return this;
+  afk() {
+    this.afkSince = Date.now();
   }
 
-  dispose() {
-    this.socket.close();
-    (this as any).socket = null;
+  back() {
+    this.afkSince = null;
   }
+  //#endregion
+
+  position = { x: rand(), y: rand() };
+
+  constructor(readonly socket: Socket, readonly id: UserId) {}
+
+  toJSON() {
+    return serializeUser(this);
+  }
+}
+
+function rand() {
+  return Math.round(Math.random() * 500);
 }

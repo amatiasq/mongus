@@ -6,7 +6,7 @@ import { ClientToClientMessage } from './ClientToClientMessage';
 export enum ServerMessageType {
   ERROR = 'ERROR',
   HANDSHAKE = 'HANDSHAKE',
-  LOGIN_RESULT = 'LOGIN_RESULT',
+  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
   USER_CONNECTED = 'USER_CONNECTED',
   USER_DISCONNECTED = 'USER_DISCONNECTED',
   MESSAGE_FROM_USER = 'MESSAGE_FROM_USER',
@@ -23,17 +23,17 @@ interface ServerMessage__HANDSHAKE {
 }
 
 interface ServerMessage__LOGIN_RESULT__SUCCESS {
-  type: ServerMessageType.LOGIN_RESULT;
-  success: true;
-  name: UserName;
+  type: ServerMessageType.LOGIN_SUCCESS;
+  // success: true;
+  // name: UserName;
   users: SerializedUser[];
 }
 
-interface ServerMessage__LOGIN_RESULT__FAIL {
-  type: ServerMessageType.LOGIN_RESULT;
-  success: false;
-  message: string;
-}
+// interface ServerMessage__LOGIN_RESULT__FAIL {
+//   type: ServerMessageType.LOGIN_SUCCESS;
+//   success: false;
+//   message: string;
+// }
 
 interface ServerMessage__USER_CONNECTED {
   type: ServerMessageType.USER_CONNECTED;
@@ -42,7 +42,7 @@ interface ServerMessage__USER_CONNECTED {
 
 interface ServerMessage__USER_DISCONNECTED {
   type: ServerMessageType.USER_DISCONNECTED;
-  user: SerializedUser;
+  uuid: UserId;
 }
 
 interface ServerMessage__MESSAGE_TO_ROOM {
@@ -61,7 +61,7 @@ export type ServerMessage =
   | ServerMessage__ERROR
   | ServerMessage__HANDSHAKE
   | ServerMessage__LOGIN_RESULT__SUCCESS
-  | ServerMessage__LOGIN_RESULT__FAIL
+  // | ServerMessage__LOGIN_RESULT__FAIL
   | ServerMessage__USER_CONNECTED
   | ServerMessage__USER_DISCONNECTED
   | ServerMessage__MESSAGE_TO_ROOM

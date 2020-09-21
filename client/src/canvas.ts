@@ -1,69 +1,36 @@
-import { Vector } from '../../shared/Vector';
-import { loadImage } from './assets';
-import { Color } from './Color';
-import { getCanvas } from './ui';
+import { User } from './User';
 
-const canvas = getCanvas();
+const canvas = document.querySelector('canvas')!;
 const context = canvas.getContext('2d')!;
+const player = new Image();
 
-let player: HTMLImageElement;
-loadImage('../assets/sprites/player.png').then(x => (player = x));
+player.src = 'assets/sprites/player.png';
 
-export function render(user: Vector, others: Vector[]) {
-  context.fillStyle = 'black';
-  context.fillRect(0, 0, canvas.width, canvas.height);
+fullscreen();
+window.onresize = fullscreen;
 
-  context.save();
-  context.translate(canvas.width / 2, canvas.height / 2);
-
-  const otherColors = getColoredPlayer(Color.GREEN)!;
-  const selfColor = getColoredPlayer(Color.GREEN)!;
-
-  others.forEach(user => renderPlayer(user.x, user.y, otherColors));
-
-  renderPlayer(user.x, user.y, selfColor);
-
-  context.restore();
+function fullscreen() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 
-function renderPlayer(x: number, y: number, image: CanvasImageSource) {
-  context.drawImage(image, x, y);
-}
+export function render(users: User[]) {
+  context.clearRect(0, 0, canvas.width, canvas.height);
 
-const cache = new Map<string, CanvasImageSource>();
+  users.map(user => {
+    context.fillStyle = user.isPlayer ? 'green' : 'red';
+    context.textAlign = 'center';
 
-function getColoredPlayer(color: Color) {
-  const rgba = color.toRgba();
+    context.fillText(
+      user.id,
+      user.position.x,
+      user.position.y - 15 - player.height / 2,
+    );
 
-  if (cache.has(rgba)) {
-    return cache.get(rgba);
-  }
-
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d')!;
-  const { width, height } = player;
-
-  canvas.width = width;
-  canvas.height = height;
-  context.drawImage(player, 0, 0);
-
-  const dark = new Color(color.r, color.g, color.b, (1 / 255) * 100);
-
-  const image = context.getImageData(0, 0, width, height);
-  const { data } = image;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const pixel = new Color(data[i + 0], data[i + 1], data[i + 2]);
-
-    if (pixel.isReddish) {
-      color.setTo(data, i);
-    } else if (pixel.isBlueish || pixel.isPurpleish) {
-      dark.setTo(data, i);
-    }
-  }
-
-  context.putImageData(image, 0, 0);
-
-  cache.set(rgba, canvas);
-  return canvas;
+    context.drawImage(
+      player,
+      user.position.x - player.width / 2,
+      user.position.y - player.height / 2,
+    );
+  });
 }

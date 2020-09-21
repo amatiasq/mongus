@@ -12,8 +12,8 @@ https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/audio
 
 ### Stage 1
 
-- 2 players
-- see each other
+- ~~2 players~~
+- ~~see each other~~
 - running
 
 ### Stage 2

@@ -1,21 +1,19 @@
-import {
-  ServerMessage,
-  ServerMessageType,
-} from './../../shared/communication/ServerMessage';
+import { ServerMessageType } from './../../shared/communication/ServerMessage';
 import { JsonSocket } from '@amatiasq/json-socket';
 import { ClientMessage } from '../../shared/communication/ClientMessage';
+import { ServerMessage } from '../../shared/communication/ServerMessage';
 
-export class Socket {
-  private readonly socket = new JsonSocket<ServerMessage, ClientMessage>(
-    this.uri,
-  );
-  private readonly listeners = new Map<ServerMessageType, Listener[]>();
+export class Socket extends JsonSocket<ServerMessage, ClientMessage> {
+  readonly listeners;
 
-  constructor(public readonly uri: string) {
-    this.socket.onMessage(e => this.processMessage(e));
+  constructor(uri: string) {
+    super(uri);
+
+    this.listeners = new Map<ServerMessageType, Listener[]>();
+    this.onMessage(e => this.processMessagePotato(e));
   }
 
-  onMessage<T extends ServerMessageType>(
+  onMessageType<T extends ServerMessageType>(
     type: T,
     listener: (message: TypedMessage<T>) => void,
   ) {
@@ -26,11 +24,7 @@ export class Socket {
     }
   }
 
-  send(value: ClientMessage) {
-    this.socket.send(value);
-  }
-
-  private processMessage(message: ServerMessage): void {
+  private processMessagePotato(message: ServerMessage): void {
     const listeners = this.listeners.get(message.type);
 
     console.debug(message.type, message);
@@ -43,9 +37,9 @@ export class Socket {
   }
 }
 
-type Listener = (message: ServerMessage) => void;
+export type Listener = (message: ServerMessage) => void;
 
-type TypedMessage<T extends ServerMessageType> = Extract<
+export type TypedMessage<T extends ServerMessageType> = Extract<
   ServerMessage,
   { type: T }
 >;

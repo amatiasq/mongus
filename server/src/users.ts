@@ -1,43 +1,45 @@
-import { UserId, UserName } from '../../shared/types';
+import {
+  ServerMessage,
+  ServerMessageType,
+} from '../../shared/communication/ServerMessage';
+import { UserId } from '../../shared/types';
+import { Socket } from './Socket';
 import { User } from './User';
-import { Socket } from './websocket';
 
 const users: User[] = [];
 
-export function getUserById(id: UserId) {
-  return users.find(x => x.id === id);
-}
+export function login(socket: Socket, uuid: UserId) {
+  const user = new User(socket, uuid);
 
-export function getUserByName(name: UserName) {
-  return users.find(x => x.name === name);
-}
+  broadcast({
+    type: ServerMessageType.USER_CONNECTED,
+    user: user.toJSON(),
+  });
 
-export function getUserBySocket(ws: Socket) {
-  return users.find(x => x.socket === ws);
-}
-
-export function isUsernameAvailable(name: UserName) {
-  return users.every(x => x.name !== name);
-}
-
-export function registerUser(ws: Socket, name: UserName) {
-  const user = new User(ws, name);
   users.push(user);
+
+  socket.send({
+    type: ServerMessageType.LOGIN_SUCCESS,
+    users: users.map(x => x.toJSON()),
+  });
+
   return user;
 }
 
-export function removeUser(user: User): boolean {
-  const index = users.findIndex(x => x.id === user.id);
-
-  if (index === -1) {
-    return false;
-  }
+export function logout(uuid: UserId) {
+  const index = users.findIndex(x => x.id === uuid);
+  if (index === -1) return;
 
   users.splice(index, 1);
-  console.log(users.map(x => x.name).join());
-  return true;
+
+  broadcast({
+    type: ServerMessageType.USER_DISCONNECTED,
+    uuid,
+  });
 }
 
-export function getConnectedUsers() {
-  return Array.from(users);
+export function broadcast(message: ServerMessage) {
+  for (const user of users) {
+    user.socket.send(message);
+  }
 }

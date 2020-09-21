@@ -1,10 +1,12 @@
+import { Vector } from './Vector';
 import { UserId, UserName } from './types';
 
 export interface SerializedUser {
   id: UserId;
-  name: UserName;
+  // name: UserName;
+  position: Vector;
 }
 
-export function serializeUser({ id, name }: SerializedUser) {
-  return { id, name };
+export function serializeUser({ id, position }: SerializedUser) {
+  return { id, position };
 }

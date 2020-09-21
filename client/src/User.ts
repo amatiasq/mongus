@@ -1,36 +1,16 @@
-import { SerializedUser } from '../../shared/SerializedUser';
-import { PeerChannel } from './PeerChannel';
+import { UserId } from '../../shared/types';
+import { SerializedUser, serializeUser } from '../../shared/SerializedUser';
 
 export class User implements SerializedUser {
   id;
-  name;
   position = { x: 0, y: 0 };
 
-  private connection: PeerChannel | null = null;
-
-  get isCalling() {
-    return Boolean(this.connection);
+  constructor({ id, position }: SerializedUser, readonly isPlayer = false) {
+    this.id = id;
+    this.position = position;
   }
 
-  constructor(serialized: SerializedUser) {
-    this.id = serialized.id;
-    this.name = serialized.name;
-  }
-
-  callStarted(connection: PeerChannel) {
-    this.connection = connection;
-  }
-
-  acceptAnswer(answer: RTCSessionDescription): void {
-    this.connection!.acceptAnswer(answer);
-  }
-
-  hangup() {
-    this.connection?.end();
-    this.connection = null;
-  }
-
-  dispose() {
-    this.hangup();
+  toJSON() {
+    return serializeUser(this);
   }
 }
