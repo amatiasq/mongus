@@ -2,7 +2,7 @@ import { KeyboardController, KeyCode } from '@amatiasq/keyboard';
 import { Action } from '../../shared/Action';
 
 const keyboard = new KeyboardController<Action>();
-const actions = new Set<Action>();
+const activeActions = new Set<Action>();
 
 const keymaps = {
   [KeyCode.KeyW]: Action.UP,
@@ -18,12 +18,15 @@ const keymaps = {
 export function watchKeyboard(notify: (actions: Action[]) => void) {
   Object.entries(keymaps).map(([key, action]) => {
     keyboard.onKeyDown(key as KeyCode, () => {
-      actions.add(action);
-      notify(Array.from(actions));
+      if (activeActions.has(action)) return;
+      activeActions.add(action);
+      notify(Array.from(activeActions));
     });
+
     keyboard.onKeyUp(key as KeyCode, () => {
-      actions.delete(action);
-      notify(Array.from(actions));
+      if (!activeActions.has(action)) return;
+      activeActions.delete(action);
+      notify(Array.from(activeActions));
     });
   });
 }

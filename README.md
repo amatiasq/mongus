@@ -10,15 +10,23 @@ https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/audio
 
 ## POC
 
-### Stage 1
+### ~~Stage 1~~
 
 - ~~2 players~~
 - ~~see each other~~
-- running
+- ~~running~~
 
 ### Stage 2
 
+- Display name
 - Interaction: killing
+  - Proximity detection
+  - Display if action is available
+  - Kill animation
+  - Kill state
+  - Display body to all players
+  - Spectator mode.
+  - Resurrect key.
 - ratio vision
 
 ### Stage 3

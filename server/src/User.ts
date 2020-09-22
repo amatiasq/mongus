@@ -1,3 +1,4 @@
+import { ServerMessage } from './../../shared/communication/ServerMessage';
 import { Action } from '../../shared/Action';
 import { SerializedUser, serializeUser } from '../../shared/SerializedUser';
 import { UserId } from '../../shared/types';
@@ -25,6 +26,10 @@ export class User implements SerializedUser {
 
   constructor(readonly socket: Socket, readonly id: UserId) {}
 
+  send(message: ServerMessage) {
+    this.socket.send(message);
+  }
+
   toJSON() {
     return serializeUser(this);
   }
@@ -32,21 +37,4 @@ export class User implements SerializedUser {
 
 function rand() {
   return Math.round(Math.random() * 500);
-}
-startGameLoop() {
-  this.gameLoopId = gameloop.setGameLoop(this.step, 1000 / this.frameRate);
-  this.logInterval = setInterval(this.logState, LOG_DELAY * 1000);
-
-  console.info(`Server started at: ${new Date()}`);
-}
-
-stopGameLoop() {
-  gameloop.clearGameLoop(this.gameLoopId);
-  clearInterval(this.logInterval);
-
-  console.info(`Server stoped at: ${new Date()}`);
-}
-
-stop() {
-  gameloop.clearGameLoop(this.gameLoopId);
 }

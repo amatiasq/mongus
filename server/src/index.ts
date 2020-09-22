@@ -1,4 +1,6 @@
+/// <reference path="./node-gameloop.d.ts" />
 import { createServer } from 'http';
+import { setGameLoop } from 'node-gameloop';
 
 import { NiceSocketServer } from '@amatiasq/nice-socket';
 
@@ -12,7 +14,11 @@ import {
 } from '../../shared/communication/ServerMessage';
 import { Socket } from './Socket';
 import { User } from './User';
-import { login, logout } from './users';
+import { broadcast, getAllUsers, getUserById, login, logout } from './users';
+import { step } from './game';
+
+const FRAMES = 30;
+let frameCount = 0;
 
 const port = process.env.PORT || 17965;
 const server = createServer();
@@ -22,27 +28,47 @@ const webSocketServer = new NiceSocketServer<ClientMessage, ServerMessage>(
 
 server.listen(port, () => console.log(`Websocket server ready at ${port}`));
 
+const gameloopId = setGameLoop((delta: number) => {
+  frameCount++;
+
+  const users = getAllUsers();
+  step(delta, users);
+  broadcast({
+    type: ServerMessageType.GAME_STEP,
+    users,
+  });
+});
+
+setInterval(() => {
+  console.log(`Averag FPS in 5 seconds: ${frameCount / 5}`);
+  frameCount = 0;
+}, 5000);
+
 webSocketServer.onConnection(nice => {
   const socket = new Socket(nice);
   let user: User;
 
   socket.onClose(() => user && user.afk());
 
-  socket.onMessageType(
-    ClientMessageType.RECONNECT,
-    data => user && user.back(),
-  );
-
-  socket.onMessageType(
-    ClientMessageType.LOGIN,
-    data => (user = login(socket, data.uuid)),
-  );
-
-  socket.onMessageType(ClientMessageType.USER_ACTIONS, data => {
-    user.actions = new Set(data.actions);
+  socket.onMessageType(ClientMessageType.RECONNECT, data => {
+    const user = getUserById(data.uuid) || login(socket, data.uuid);
+    user.back();
+    onUserConnected(user, socket);
   });
 
-  socket.onMessageType(ClientMessageType.LOGOUT, data => logout(user.id));
+  socket.onMessageType(ClientMessageType.LOGIN, data => {
+    user = login(socket, data.uuid);
+    onUserConnected(user, socket);
+  });
 
   socket.send({ type: ServerMessageType.HANDSHAKE });
 });
+
+function onUserConnected(user: User, socket: Socket) {
+  socket.onMessageType(
+    ClientMessageType.USER_ACTIONS,
+    data => (user.actions = new Set(data.actions)),
+  );
+
+  socket.onMessageType(ClientMessageType.LOGOUT, data => logout(user.id));
+}

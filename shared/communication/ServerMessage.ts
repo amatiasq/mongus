@@ -1,7 +1,5 @@
-import { RoomMessage } from './RoomMessage';
 import { SerializedUser } from '../SerializedUser';
-import { UserId, UserName } from '../types';
-import { ClientToClientMessage } from './ClientToClientMessage';
+import { UserId } from '../types';
 
 export enum ServerMessageType {
   ERROR = 'ERROR',
@@ -11,6 +9,7 @@ export enum ServerMessageType {
   USER_DISCONNECTED = 'USER_DISCONNECTED',
   MESSAGE_FROM_USER = 'MESSAGE_FROM_USER',
   MESSAGE_TO_ROOM = 'MESSAGE_TO_ROOM',
+  GAME_STEP = 1,
 }
 
 interface ServerMessage__ERROR {
@@ -24,16 +23,8 @@ interface ServerMessage__HANDSHAKE {
 
 interface ServerMessage__LOGIN_RESULT__SUCCESS {
   type: ServerMessageType.LOGIN_SUCCESS;
-  // success: true;
-  // name: UserName;
   users: SerializedUser[];
 }
-
-// interface ServerMessage__LOGIN_RESULT__FAIL {
-//   type: ServerMessageType.LOGIN_SUCCESS;
-//   success: false;
-//   message: string;
-// }
 
 interface ServerMessage__USER_CONNECTED {
   type: ServerMessageType.USER_CONNECTED;
@@ -45,24 +36,15 @@ interface ServerMessage__USER_DISCONNECTED {
   uuid: UserId;
 }
 
-interface ServerMessage__MESSAGE_TO_ROOM {
-  type: ServerMessageType.MESSAGE_TO_ROOM;
-  from: UserId;
-  message: RoomMessage;
-}
-
-interface ServerMessage__MESSAGE_FROM_USER {
-  type: ServerMessageType.MESSAGE_FROM_USER;
-  from: UserId;
-  message: ClientToClientMessage;
+interface ServerMessage__GAME_STEP {
+  type: ServerMessageType.GAME_STEP;
+  users: SerializedUser[];
 }
 
 export type ServerMessage =
   | ServerMessage__ERROR
   | ServerMessage__HANDSHAKE
   | ServerMessage__LOGIN_RESULT__SUCCESS
-  // | ServerMessage__LOGIN_RESULT__FAIL
   | ServerMessage__USER_CONNECTED
   | ServerMessage__USER_DISCONNECTED
-  | ServerMessage__MESSAGE_TO_ROOM
-  | ServerMessage__MESSAGE_FROM_USER;
+  | ServerMessage__GAME_STEP;

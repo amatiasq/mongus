@@ -56,6 +56,10 @@ socket.onMessageType(ServerMessageType.USER_DISCONNECTED, data => {
   }
 });
 
+socket.onMessageType(ServerMessageType.GAME_STEP, data => {
+  users = data.users.map(x => new User(x, x.id === uuid));
+});
+
 window.onbeforeunload = () => {
   socket.send({ type: ClientMessageType.LOGOUT });
 };
