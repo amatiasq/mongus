@@ -8,7 +8,7 @@ export enum ClientMessageType {
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
   RECONNECT = 'RECONNECT',
-  USER_ACTIONS = 'USER_ACTIONS',
+  USER_ACTIONS = 1,
 }
 
 interface ClientMessage__ERROR {

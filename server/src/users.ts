@@ -8,6 +8,14 @@ import { User } from './User';
 
 const users: User[] = [];
 
+export function getAllUsers() {
+  return users;
+}
+
+export function getUserById(uuid: UserId) {
+  return users.find(x => x.id === uuid);
+}
+
 export function login(socket: Socket, uuid: UserId) {
   const user = new User(socket, uuid);
 
