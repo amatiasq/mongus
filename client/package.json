@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@amatiasq/json-socket": "^2.0.1",
-    "@amatiasq/keyboard": "^0.1.0",
+    "@amatiasq/keyboard": "^1.0.1",
     "@amatiasq/peer-connection": "^3.0.1"
   }
 }
