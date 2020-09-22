@@ -1,9 +1,13 @@
-name: Deploy to Github Pages
+name: Deploy Frontend
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   deploy:
+    name: Deploy to Github Pages
     runs-on: ubuntu-18.04
 
     defaults:

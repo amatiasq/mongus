@@ -1,8 +1,13 @@
 name: Deploy Server
-on: [push]
+
+on:
+  push:
+    branches:
+      - master
+
 jobs:
   build:
-    name: Build
+    name: SSH to server, pull & restart
     runs-on: ubuntu-latest
     steps:
       - name: Executing remote ssh commands using password
@@ -14,6 +19,12 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd mongus/server
-            git pull
+
+            git fetch --all
+            git reset --hard origin/master
+
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
             npm i
+
             pm2 reload amongus
