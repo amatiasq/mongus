@@ -1,6 +1,9 @@
-import { ClientMessageType } from './../../shared/communication/ClientMessage';
 import { NiceSocket } from '@amatiasq/nice-socket';
-import { ClientMessage } from '../../shared/communication/ClientMessage';
+
+import {
+  ClientMessage,
+  ClientMessageType,
+} from '../../shared/communication/ClientMessage';
 import { ServerMessage } from '../../shared/communication/ServerMessage';
 
 export class Socket {
@@ -13,7 +16,8 @@ export class Socket {
   }
 
   onClose(listener: () => void) {
-    this.socket.on('close', listener);
+    // FIXME: this fails on prod
+    (this.socket as any).on('close', listener);
   }
 
   onMessageType<T extends ClientMessageType>(
