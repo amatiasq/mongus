@@ -1,5 +1,6 @@
 import { DeadBody } from '../../shared/models/DeadBody';
 import { Player } from '../../shared/models/Player';
+import { Orientation } from '../../shared/Orientation';
 import { Color } from './Color';
 import { PlayerSprite } from './PlayerSprite';
 
@@ -23,15 +24,22 @@ export function render(players: Player[], bodies: DeadBody[]) {
   bodies.forEach(body => {
     const sprite = bodySprite.getColor(Color.fromHex(body.color));
 
-    context.drawImage(
-      sprite,
-      body.position.x - sprite.width / 2,
-      body.position.y - sprite.height / 2,
-    );
+    context.save();
+    context.translate(body.position.x, body.position.y);
+
+    if (body.orientation === Orientation.Right) {
+      context.scale(-1, 1);
+    }
+
+    context.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
+    context.restore();
   });
 
   players.forEach(player => {
     const color = Color.fromHex(player.color);
+    const baseSprite = player.isDead ? phantomSprite : playerSprite;
+    const sprite = baseSprite.getColor(color);
+
     // context.fillStyle = color.rgb;
     // context.textAlign = 'center';
 
@@ -41,25 +49,20 @@ export function render(players: Player[], bodies: DeadBody[]) {
     //   user.position.y - 15 - player.height / 2,
     // );
 
+    context.save();
+
     if (player.isDead) {
-      const sprite = phantomSprite.getColor(color);
       context.globalAlpha = 0.8;
-
-      context.drawImage(
-        sprite,
-        player.position.x - sprite.width / 2,
-        player.position.y - sprite.height / 2,
-      );
-
-      context.globalAlpha = 1;
-    } else {
-      const sprite = playerSprite.getColor(color);
-
-      context.drawImage(
-        sprite,
-        player.position.x - sprite.width / 2,
-        player.position.y - sprite.height / 2,
-      );
     }
+
+    context.translate(player.position.x, player.position.y);
+
+    if (player.orientation === Orientation.Left) {
+      context.scale(-1, 1);
+    }
+
+    context.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
+    context.globalAlpha = 1;
+    context.restore();
   });
 }

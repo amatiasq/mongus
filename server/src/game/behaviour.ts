@@ -23,7 +23,7 @@ function stepPlayer(delta: number, player: ServerPlayer, universe: Universe) {
     player.position.x += SPEED * delta;
   }
 
-  if (player.isDoing(Action.KILL)) {
+  if (!player.isDead && player.isDoing(Action.KILL)) {
     const victim = universe.getClosestAlive(player, 100);
 
     if (victim) {
