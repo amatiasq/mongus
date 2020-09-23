@@ -1,6 +1,6 @@
-import { DeadBody } from './../DeadBody';
-import { SerializedUser } from '../SerializedUser';
 import { UserId } from '../types';
+import { Entity } from '../models/Entity';
+import { User } from '../models/User';
 
 export enum ServerMessageType {
   ERROR = 'ERROR',
@@ -24,12 +24,12 @@ interface ServerMessage__HANDSHAKE {
 
 interface ServerMessage__LOGIN_RESULT__SUCCESS {
   type: ServerMessageType.LOGIN_SUCCESS;
-  users: SerializedUser[];
+  users: User[];
 }
 
 interface ServerMessage__USER_CONNECTED {
   type: ServerMessageType.USER_CONNECTED;
-  user: SerializedUser;
+  user: User;
 }
 
 interface ServerMessage__USER_DISCONNECTED {
@@ -39,8 +39,7 @@ interface ServerMessage__USER_DISCONNECTED {
 
 interface ServerMessage__GAME_STEP {
   type: ServerMessageType.GAME_STEP;
-  users: SerializedUser[];
-  entities: DeadBody[];
+  entities: Entity[];
 }
 
 export type ServerMessage =

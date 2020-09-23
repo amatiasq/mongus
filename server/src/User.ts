@@ -1,41 +1,56 @@
 import { Action } from '../../shared/Action';
 import { ServerMessage } from '../../shared/communication/ServerMessage';
-import { SerializedUser, serializeUser } from '../../shared/SerializedUser';
 import { UserId } from '../../shared/types';
-import { getRandomColor } from './getRandomColor';
-import { Socket } from './Socket';
+import { serializeUser, User } from './../../shared/models/User';
+import { ServerPlayer } from './entities/ServerPlayer';
+import { ServerSocket } from './ServerSocket';
 
-export class User implements SerializedUser {
-  private afkSince: number | null = null;
-  actions = new Set<Action>();
-  position = { x: rand(), y: rand() };
-  color = getRandomColor();
-  isDead = false;
+const CONNECTION_TIMEOUT_SECONDS = 1;
+const AFK_AFTER_SECONDS = 10;
+
+export class ServerUser implements User {
+  player = new ServerPlayer();
+
+  private lastAction = Date.now();
+  private disconnectedAt: number | null = null;
+  private readonly missedMessages: ServerMessage[] = [];
+
+  get hasLostConnection() {
+    return (
+      this.disconnectedAt &&
+      secondsSince(this.disconnectedAt) > CONNECTION_TIMEOUT_SECONDS
+    );
+  }
 
   get isAfk() {
-    return this.afkSince != null && Date.now() - this.afkSince > 1000;
+    return secondsSince(this.lastAction) > AFK_AFTER_SECONDS;
   }
 
-  constructor(readonly socket: Socket, readonly id: UserId) {}
+  constructor(private socket: ServerSocket, readonly id: UserId) {}
 
-  // player
-
-  die() {
-    this.isDead = true;
+  setActions(actions: Action[]) {
+    this.lastAction = Date.now();
+    this.player.setActions(actions);
   }
 
-  // user
-
-  afk() {
-    this.afkSince = Date.now();
+  disconnected() {
+    this.disconnectedAt = Date.now();
   }
 
-  back() {
-    this.afkSince = null;
+  reconnected(socket: ServerSocket) {
+    this.disconnectedAt = null;
+    this.socket = socket;
+
+    this.missedMessages.forEach(x => socket.send(x));
+    this.missedMessages.length = 0;
   }
 
   send(message: ServerMessage) {
-    this.socket.send(message);
+    if (this.disconnectedAt) {
+      this.missedMessages.push(message);
+    } else {
+      this.socket.send(message);
+    }
   }
 
   toJSON() {
@@ -43,6 +58,6 @@ export class User implements SerializedUser {
   }
 }
 
-function rand() {
-  return Math.round(Math.random() * 500);
+function secondsSince(timestamp: number) {
+  return (Date.now() - timestamp) / 1000;
 }

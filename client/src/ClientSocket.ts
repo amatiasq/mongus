@@ -3,7 +3,7 @@ import { JsonSocket } from '@amatiasq/json-socket';
 import { ClientMessage } from '../../shared/communication/ClientMessage';
 import { ServerMessage } from '../../shared/communication/ServerMessage';
 
-export class Socket extends JsonSocket<ServerMessage, ClientMessage> {
+export class ClientSocket extends JsonSocket<ServerMessage, ClientMessage> {
   readonly listeners;
 
   constructor(uri: string) {

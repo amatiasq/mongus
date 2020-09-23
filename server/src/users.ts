@@ -3,10 +3,10 @@ import {
   ServerMessageType,
 } from '../../shared/communication/ServerMessage';
 import { UserId } from '../../shared/types';
-import { Socket } from './Socket';
-import { User } from './User';
+import { ServerSocket } from './ServerSocket';
+import { ServerUser } from './User';
 
-const users: User[] = [];
+let users: ServerUser[] = [];
 
 export function getAllUsers() {
   return users;
@@ -16,8 +16,8 @@ export function getUserById(uuid: UserId) {
   return users.find(x => x.id === uuid);
 }
 
-export function login(socket: Socket, uuid: UserId) {
-  const user = new User(socket, uuid);
+export function login(socket: ServerSocket, uuid: UserId) {
+  const user = new ServerUser(socket, uuid);
 
   broadcast({
     type: ServerMessageType.USER_CONNECTED,
@@ -46,8 +46,20 @@ export function logout(uuid: UserId) {
   });
 }
 
+export function clean() {
+  const remove: ServerUser[] = [];
+  const stay: ServerUser[] = [];
+
+  users.forEach(user =>
+    user.hasLostConnection ? remove.push(user) : stay.push(user),
+  );
+
+  users = stay;
+  return remove;
+}
+
 export function broadcast(message: ServerMessage) {
   for (const user of users) {
-    user.socket.send(message);
+    user.send(message);
   }
 }

@@ -1,4 +1,5 @@
-import { NiceSocket } from '@amatiasq/nice-socket';
+import { NiceSocket, NiceSocketServer } from '@amatiasq/nice-socket';
+import { createServer } from 'http';
 
 import {
   ClientMessage,
@@ -6,7 +7,18 @@ import {
 } from '../../shared/communication/ClientMessage';
 import { ServerMessage } from '../../shared/communication/ServerMessage';
 
-export class Socket {
+export function createSocketServer() {
+  const port = process.env.PORT || 17965;
+  const server = createServer();
+  const webSocketServer = new NiceSocketServer<ClientMessage, ServerMessage>(
+    server,
+  );
+
+  server.listen(port, () => console.log(`Websocket server ready at ${port}`));
+  return webSocketServer;
+}
+
+export class ServerSocket {
   private readonly listeners = new Map<ClientMessageType, Listener[]>();
 
   constructor(

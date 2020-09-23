@@ -1,4 +1,6 @@
-const colors = [
+import { HexColor } from './../../shared/types';
+
+const colors = ([
   '#FF8888',
   '#88FF88',
   '#8888FF',
@@ -13,9 +15,10 @@ const colors = [
   '#555588',
   '#888888',
   '#FFFFFF',
-];
+] as string[]) as HexColor[];
+
 let colorIndex = 0;
 
-export function getRandomColor() {
+export function getRandomColor(): HexColor {
   return colors[colorIndex++ % colors.length];
 }

@@ -1,61 +1,35 @@
-/// <reference path="./node-gameloop.d.ts" />
-import { Universe } from './Universe';
-import { createServer } from 'http';
-import { setGameLoop } from 'node-gameloop';
-
-import { NiceSocketServer } from '@amatiasq/nice-socket';
-
-import {
-  ClientMessage,
-  ClientMessageType,
-} from '../../shared/communication/ClientMessage';
-import {
-  ServerMessage,
-  ServerMessageType,
-} from '../../shared/communication/ServerMessage';
-import { Socket } from './Socket';
-import { User } from './User';
+import { ClientMessageType } from '../../shared/communication/ClientMessage';
+import { ServerMessageType } from '../../shared/communication/ServerMessage';
+import { gameStep } from './game/behaviour';
+import { startLoop } from './game/loop';
+import { Universe } from './game/Universe';
+import { createSocketServer, ServerSocket } from './ServerSocket';
+import { ServerUser } from './User';
 import { broadcast, getAllUsers, getUserById, login, logout } from './users';
-import { step } from './game';
 
-const FRAMES = 30;
-let frameCount = 0;
-
-const port = process.env.PORT || 17965;
-const server = createServer();
-const webSocketServer = new NiceSocketServer<ClientMessage, ServerMessage>(
-  server,
-);
-
-server.listen(port, () => console.log(`Websocket server ready at ${port}`));
-
+const webSocketServer = createSocketServer();
 const universe = new Universe();
 
-const gameloopId = setGameLoop((delta: number) => {
-  frameCount++;
+startLoop(delta => {
+  universe.setPlayers(getAllUsers().map(x => x.player));
 
-  universe.users = getAllUsers();
-  step(delta, universe);
+  gameStep(delta, universe);
+
   broadcast({
     type: ServerMessageType.GAME_STEP,
-    ...universe.toJSON(),
+    entities: universe.toJSON(),
   });
 });
 
-setInterval(() => {
-  console.log(`Averag FPS in 5 seconds: ${frameCount / 5}`);
-  frameCount = 0;
-}, 5000);
-
 webSocketServer.onConnection(nice => {
-  const socket = new Socket(nice);
-  let user: User;
+  const socket = new ServerSocket(nice);
+  let user: ServerUser;
 
-  socket.onClose(() => user && user.afk());
+  socket.onClose(() => user && user.disconnected());
 
   socket.onMessageType(ClientMessageType.RECONNECT, data => {
     const user = getUserById(data.uuid) || login(socket, data.uuid);
-    user.back();
+    user.reconnected(socket);
     onUserConnected(user, socket);
   });
 
@@ -67,10 +41,9 @@ webSocketServer.onConnection(nice => {
   socket.send({ type: ServerMessageType.HANDSHAKE });
 });
 
-function onUserConnected(user: User, socket: Socket) {
-  socket.onMessageType(
-    ClientMessageType.USER_ACTIONS,
-    data => (user.actions = new Set(data.actions)),
+function onUserConnected(user: ServerUser, socket: ServerSocket) {
+  socket.onMessageType(ClientMessageType.USER_ACTIONS, data =>
+    user.setActions(data.actions),
   );
 
   socket.onMessageType(ClientMessageType.LOGOUT, data => logout(user.id));

@@ -1,17 +1,18 @@
-import { DeadBody } from './../../shared/DeadBody';
 import { ClientMessageType } from '../../shared/communication/ClientMessage';
 import { ServerMessageType } from '../../shared/communication/ServerMessage';
+import { DeadBody } from '../../shared/models/DeadBody';
+import { EntityType } from '../../shared/models/Entity';
+import { Player } from '../../shared/models/Player';
 import { UserId } from '../../shared/types';
 import { render } from './canvas';
-import { Socket } from './Socket';
-import { User } from './User';
+import { ClientSocket } from './ClientSocket';
+import { ClientUser } from './ClientUser';
 import { watchKeyboard } from './interactions';
 
-// const socket = new Socket('ws://localhost:17965');
-const socket = new Socket('wss://amongus.amatiasq.com');
+// const socket = new ClientSocket('ws://localhost:17965');
+const socket = new ClientSocket('wss://amongus.amatiasq.com');
 const uuid = `${Math.random()}${Date.now()}${Math.random()}©AMONGUS®` as UserId;
-let users: User[] = [];
-let entities: DeadBody[] = [];
+let users: ClientUser[] = [];
 
 watchKeyboard(actions =>
   socket.send({
@@ -19,11 +20,6 @@ watchKeyboard(actions =>
     actions: Array.from(actions),
   }),
 );
-
-// requestAnimationFrame(function self() {
-//   render(users, entities);
-//   requestAnimationFrame(self);
-// });
 
 socket.onOpen(() =>
   socket.send({
@@ -40,12 +36,12 @@ socket.onReconnect(() =>
 );
 
 socket.onMessageType(ServerMessageType.LOGIN_SUCCESS, data => {
-  users = data.users.map(x => new User(x, x.id === uuid));
+  users = data.users.map(x => new ClientUser(x, x.id === uuid));
   onUserListChanged();
 });
 
 socket.onMessageType(ServerMessageType.USER_CONNECTED, data => {
-  users.push(new User(data.user));
+  users.push(new ClientUser(data.user));
   onUserListChanged();
 });
 
@@ -58,9 +54,18 @@ socket.onMessageType(ServerMessageType.USER_DISCONNECTED, data => {
 });
 
 socket.onMessageType(ServerMessageType.GAME_STEP, data => {
-  users = data.users.map(x => new User(x, x.id === uuid));
-  entities = data.entities;
-  render(users, entities);
+  const players: Player[] = [];
+  const bodies: DeadBody[] = [];
+
+  data.entities.forEach(entity => {
+    if (entity.type === EntityType.Player) {
+      players.push(entity as Player);
+    } else {
+      bodies.push(entity as DeadBody);
+    }
+  });
+
+  render(players, bodies);
 });
 
 window.onbeforeunload = () => {
