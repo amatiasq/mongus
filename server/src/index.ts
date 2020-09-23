@@ -1,4 +1,5 @@
 /// <reference path="./node-gameloop.d.ts" />
+import { Universe } from './Universe';
 import { createServer } from 'http';
 import { setGameLoop } from 'node-gameloop';
 
@@ -28,14 +29,16 @@ const webSocketServer = new NiceSocketServer<ClientMessage, ServerMessage>(
 
 server.listen(port, () => console.log(`Websocket server ready at ${port}`));
 
+const universe = new Universe();
+
 const gameloopId = setGameLoop((delta: number) => {
   frameCount++;
 
-  const users = getAllUsers();
-  step(delta, users);
+  universe.users = getAllUsers();
+  step(delta, universe);
   broadcast({
     type: ServerMessageType.GAME_STEP,
-    users,
+    ...universe.toJSON(),
   });
 });
 

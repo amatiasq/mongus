@@ -3,4 +3,5 @@ export enum Action {
   DOWN,
   LEFT,
   RIGHT,
+  KILL,
 }

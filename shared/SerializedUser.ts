@@ -1,12 +1,13 @@
 import { Vector } from './Vector';
-import { UserId, UserName } from './types';
+import { UserId } from './types';
 
 export interface SerializedUser {
   id: UserId;
-  // name: UserName;
   position: Vector;
+  color: string;
+  isDead: boolean;
 }
 
-export function serializeUser({ id, position }: SerializedUser) {
-  return { id, position };
+export function serializeUser({ id, position, color, isDead }: SerializedUser) {
+  return { id, position, color, isDead };
 }

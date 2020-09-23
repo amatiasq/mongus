@@ -1,3 +1,4 @@
+import { DeadBody } from './../DeadBody';
 import { SerializedUser } from '../SerializedUser';
 import { UserId } from '../types';
 
@@ -39,6 +40,7 @@ interface ServerMessage__USER_DISCONNECTED {
 interface ServerMessage__GAME_STEP {
   type: ServerMessageType.GAME_STEP;
   users: SerializedUser[];
+  entities: DeadBody[];
 }
 
 export type ServerMessage =

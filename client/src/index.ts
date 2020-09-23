@@ -1,3 +1,4 @@
+import { DeadBody } from './../../shared/DeadBody';
 import { ClientMessageType } from '../../shared/communication/ClientMessage';
 import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { UserId } from '../../shared/types';
@@ -10,6 +11,7 @@ import { watchKeyboard } from './interactions';
 const socket = new Socket('wss://amongus.amatiasq.com');
 const uuid = `${Math.random()}${Date.now()}${Math.random()}©AMONGUS®` as UserId;
 let users: User[] = [];
+let entities: DeadBody[] = [];
 
 watchKeyboard(actions =>
   socket.send({
@@ -18,10 +20,10 @@ watchKeyboard(actions =>
   }),
 );
 
-requestAnimationFrame(function self() {
-  render(users);
-  requestAnimationFrame(self);
-});
+// requestAnimationFrame(function self() {
+//   render(users, entities);
+//   requestAnimationFrame(self);
+// });
 
 socket.onOpen(() =>
   socket.send({
@@ -57,6 +59,8 @@ socket.onMessageType(ServerMessageType.USER_DISCONNECTED, data => {
 
 socket.onMessageType(ServerMessageType.GAME_STEP, data => {
   users = data.users.map(x => new User(x, x.id === uuid));
+  entities = data.entities;
+  render(users, entities);
 });
 
 window.onbeforeunload = () => {

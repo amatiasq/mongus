@@ -1,17 +1,30 @@
-import { ServerMessage } from './../../shared/communication/ServerMessage';
 import { Action } from '../../shared/Action';
+import { ServerMessage } from '../../shared/communication/ServerMessage';
 import { SerializedUser, serializeUser } from '../../shared/SerializedUser';
 import { UserId } from '../../shared/types';
+import { getRandomColor } from './getRandomColor';
 import { Socket } from './Socket';
 
 export class User implements SerializedUser {
-  //#region AFK
   private afkSince: number | null = null;
   actions = new Set<Action>();
+  position = { x: rand(), y: rand() };
+  color = getRandomColor();
+  isDead = false;
 
   get isAfk() {
     return this.afkSince != null && Date.now() - this.afkSince > 1000;
   }
+
+  constructor(readonly socket: Socket, readonly id: UserId) {}
+
+  // player
+
+  die() {
+    this.isDead = true;
+  }
+
+  // user
 
   afk() {
     this.afkSince = Date.now();
@@ -20,11 +33,6 @@ export class User implements SerializedUser {
   back() {
     this.afkSince = null;
   }
-  //#endregion
-
-  position = { x: rand(), y: rand() };
-
-  constructor(readonly socket: Socket, readonly id: UserId) {}
 
   send(message: ServerMessage) {
     this.socket.send(message);
