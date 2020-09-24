@@ -51,3 +51,11 @@ https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/audio
 ### Stage 7
 
 - Sabotage
+
+---
+
+## y tal
+
+- Box para colisiones
+- GameEngine
+- SpriteManager
