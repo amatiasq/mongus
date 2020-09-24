@@ -49,10 +49,10 @@ gameEngine.register(
   EngineHook.SEND_MESSAGE,
   serialize as Hook<CompressedList, Serialized>,
 );
-gameEngine.register(
-  EngineHook.SEND_MESSAGE,
-  toJSON as Hook<Serialized, string>,
-);
+// gameEngine.register(
+//   EngineHook.SEND_MESSAGE,
+//   toJSON as Hook<Serialized, string>,
+// );
 gameEngine.register(EngineHook.SEND_MESSAGE, toBinary as Hook<string, Binary>);
 
 // // binary => string => compressedSerialiezList => SerializedList => Players
