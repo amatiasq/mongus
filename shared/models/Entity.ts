@@ -1,6 +1,6 @@
 import { Orientation } from '../Orientation';
 import { HexColor } from '../types';
-import { Vector } from '../Vector';
+import { serializeVector, Vector } from '../Vector';
 
 export enum EntityType {
   Unknown,
@@ -30,7 +30,7 @@ export function serializeEntity({
   position,
   orientation,
 }: Entity) {
-  return { type, color, position, orientation };
+  return { type, color, position: serializeVector(position), orientation };
 }
 
 export function deserializeEntity<T extends Entity>(

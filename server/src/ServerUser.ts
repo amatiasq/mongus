@@ -1,9 +1,14 @@
 import { Action } from '../../shared/Action';
-import { ServerMessage } from '../../shared/communication/ServerMessage';
+import {
+  ServerMessage,
+  ServerMessageType,
+} from '../../shared/communication/ServerMessage';
 import { serializeUser, User } from '../../shared/models/User';
 import { UserId } from '../../shared/types';
+import { compressList } from '../../shared/util';
 import { ServerPlayer } from './entities/ServerPlayer';
 import { ServerSocket } from './ServerSocket';
+import equal from 'fast-deep-equal/es6';
 
 const CONNECTION_TIMEOUT_SECONDS = 1;
 const AFK_AFTER_SECONDS = 10;
@@ -14,6 +19,7 @@ export class ServerUser implements User {
   private lastAction = Date.now();
   private disconnectedAt: number | null = null;
   private readonly missedMessages: ServerMessage[] = [];
+  private lastFrame!: ServerMessage & { type: ServerMessageType.GAME_STEP };
 
   get hasLostConnection() {
     return (
@@ -48,9 +54,30 @@ export class ServerUser implements User {
   send(message: ServerMessage) {
     if (this.disconnectedAt) {
       this.missedMessages.push(message);
+    } else if (message.type === ServerMessageType.GAME_STEP) {
+      this.socket.send(this.compress(message));
     } else {
       this.socket.send(message);
     }
+  }
+
+  private compress(
+    data: ServerMessage & { type: ServerMessageType.GAME_STEP },
+  ) {
+    const last = this.lastFrame;
+    this.lastFrame = data;
+
+    if (!last) {
+      return data;
+    }
+
+    return {
+      type: data.type,
+      users: compressList(equal, last.users, data.users),
+      entities: compressList(equal, last.entities, data.entities),
+    };
+
+    return data;
   }
 
   toJSON() {

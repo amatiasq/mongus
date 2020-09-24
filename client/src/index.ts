@@ -1,3 +1,4 @@
+import { Entity } from './../../shared/models/Entity';
 import { ClientMessageType } from '../../shared/communication/ClientMessage';
 import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { DeadBody } from '../../shared/models/DeadBody';
@@ -7,10 +8,11 @@ import { ClientSocket } from './ClientSocket';
 import { ClientUser } from './ClientUser';
 import { centerCameraAt, render } from './ui/canvas';
 import { watchKeyboard } from './ui/interactions';
+import { decompressList } from '../../shared/util';
 
-const socket = new ClientSocket('ws://localhost:17965');
-// const socket = new ClientSocket('wss://amongus.amatiasq.com');
-const uuid = `${Math.random()}${Date.now()}${Math.random()}©AMONGUS®` as UserId;
+// const socket = new ClientSocket('ws://localhost:17965');
+const socket = new ClientSocket('wss://amongus.amatiasq.com');
+const uuid = `${Math.random()}${Date.now()}` as UserId;
 let users: ClientUser[] = [];
 
 watchKeyboard(actions =>
@@ -52,12 +54,17 @@ socket.onMessageType(ServerMessageType.USER_DISCONNECTED, data => {
   }
 });
 
+let frameUsers: User[];
+let frameEntities: Entity[];
+
 socket.onMessageType(ServerMessageType.GAME_STEP, data => {
-  users = getUsersFromServer(data.users);
+  frameUsers = decompressList(data.users, frameUsers);
+  frameEntities = decompressList(data.entities, frameEntities);
+  users = getUsersFromServer(frameUsers);
 
   const me = users.find(x => x.id === uuid);
   const players = users.map(x => x.player);
-  const bodies = data.entities as DeadBody[];
+  const bodies = frameEntities as DeadBody[];
 
   if (!me) {
     throw new Error(`Can't find player in user list. UUID-${uuid}`);

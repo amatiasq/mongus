@@ -3,6 +3,13 @@ export interface Vector {
   y: number;
 }
 
+export function serializeVector(vector: Vector) {
+  return {
+    x: Math.round(vector.x * 100) / 100,
+    y: Math.round(vector.y * 100) / 100,
+  };
+}
+
 export const multiply = (value: number) => (target: Vector) => ({
   x: target.x * value,
   y: target.y * value,
