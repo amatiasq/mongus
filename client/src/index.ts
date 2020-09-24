@@ -1,17 +1,22 @@
-import { Entity } from './../../shared/models/Entity';
 import { ClientMessageType } from '../../shared/communication/ClientMessage';
 import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { DeadBody } from '../../shared/models/DeadBody';
+import { Entity } from '../../shared/models/Entity';
 import { User } from '../../shared/models/User';
 import { UserId } from '../../shared/types';
+import { decompressList } from '../../shared/util';
 import { ClientSocket } from './ClientSocket';
 import { ClientUser } from './ClientUser';
 import { centerCameraAt, render } from './ui/canvas';
 import { watchKeyboard } from './ui/interactions';
-import { decompressList } from '../../shared/util';
 
-// const socket = new ClientSocket('ws://localhost:17965');
-const socket = new ClientSocket('wss://amongus.amatiasq.com');
+const FORCE_PROD_SERVER = false;
+const serverUri =
+  location.origin === 'https://amatiasq.github.io' || FORCE_PROD_SERVER
+    ? 'wss://amongus.amatiasq.com'
+    : 'ws://localhost:17965';
+
+const socket = new ClientSocket(serverUri);
 const uuid = `${Math.random()}${Date.now()}` as UserId;
 let users: ClientUser[] = [];
 

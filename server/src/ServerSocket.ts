@@ -28,8 +28,7 @@ export class ServerSocket {
   }
 
   onClose(listener: () => void) {
-    // FIXME: this fails on prod
-    (this.socket as any).on('close', listener);
+    this.socket.on('close', listener);
   }
 
   onMessageType<T extends ClientMessageType>(

@@ -19,15 +19,15 @@ https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/audio
 ### Stage 2
 
 - Display name
-- Interaction: killing
+- ~~Interaction: killing~~
   - Proximity detection
   - Display if action is available
   - Kill animation
-  - Kill state
-  - Display body to all players
-  - Spectator mode.
-  - Resurrect key.
-- ratio vision
+  - ~~Kill state~~
+  - ~~Display body to all players~~
+  - ~~Spectator mode.~~
+  - ~~Resurrect key.~~
+- ~~ratio vision~~
 
 ### Stage 3
 

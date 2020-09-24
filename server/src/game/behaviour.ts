@@ -1,7 +1,7 @@
 import { Action } from '../../../shared/Action';
 import { Orientation } from '../../../shared/Orientation';
 import { chain } from '../../../shared/util';
-import { multiply, sum } from '../../../shared/Vector';
+import { multiply, plus } from '../../../shared/Vector';
 import { ServerPlayer } from '../entities/ServerPlayer';
 import { Universe } from './Universe';
 
@@ -18,11 +18,14 @@ function stepPlayer(delta: number, player: ServerPlayer, universe: Universe) {
     player.position = chain(
       direction,
       multiply(player.speed * delta),
-      sum(player.position),
+      plus(player.position),
     );
   }
 
-  if (!player.isDead && player.isDoing(Action.KILL)) {
+  if (player.isDead && player.isDoing(Action.RESURRECT)) {
+    player.isDead = false;
+    player.done(Action.RESURRECT);
+  } else if (!player.isDead && player.isDoing(Action.KILL)) {
     const victim = universe.getClosestAlive(player, 100);
 
     if (victim) {

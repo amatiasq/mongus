@@ -25,7 +25,8 @@ export function centerCameraAt({ x, y }: Vector) {
 }
 
 export function render(players: Player[], bodies: DeadBody[]) {
-  const offset = chain(getCenterOf(canvas), minus(camera));
+  const middle = getCenterOf(canvas);
+  const offset = chain(middle, minus(camera));
   const bgPos = chain(getCenterOf(background), negate);
 
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -38,6 +39,7 @@ export function render(players: Player[], bodies: DeadBody[]) {
   players.forEach(renderPlayer);
 
   context.restore();
+  visibilityRange(middle);
 }
 
 function renderDeadBody(body: DeadBody) {
@@ -53,6 +55,16 @@ function renderDeadBody(body: DeadBody) {
 
   context.drawImage(sprite, spritePos.x, spritePos.y);
   context.restore();
+}
+
+function visibilityRange({ x, y }: Vector) {
+  const gradient = context.createRadialGradient(x, y, 100, x, y, 400);
+
+  gradient.addColorStop(0, 'transparent');
+  gradient.addColorStop(1, 'black');
+
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function renderPlayer(player: Player) {

@@ -13,7 +13,7 @@ export class ClientSocket extends JsonSocket<ServerMessage, ClientMessage> {
     super(uri);
 
     this.listeners = new Map<ServerMessageType, Listener[]>();
-    this.onMessage(e => this.processMessagePotato(e));
+    this.onMessage(e => this.processMessageExtended(e));
   }
 
   onMessageType<T extends ServerMessageType>(
@@ -27,10 +27,8 @@ export class ClientSocket extends JsonSocket<ServerMessage, ClientMessage> {
     }
   }
 
-  private processMessagePotato(message: ServerMessage): void {
+  private processMessageExtended(message: ServerMessage): void {
     const listeners = this.listeners.get(message.type);
-
-    console.debug(message.type, message);
 
     if (listeners) {
       listeners.forEach(x => x(message));
