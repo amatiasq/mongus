@@ -19,11 +19,13 @@ interface ClientMessage__ERROR {
 interface ClientMessage__LOGIN {
   type: ClientMessageType.LOGIN;
   uuid: UserId;
+  username: UserName;
 }
 
 interface ClientMessage__RECONNECT {
   type: ClientMessageType.RECONNECT;
   uuid: UserId;
+  username: UserName;
 }
 
 interface ClientMessage__LOGOUT {

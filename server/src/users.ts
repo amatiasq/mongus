@@ -2,7 +2,7 @@ import {
   ServerMessage,
   ServerMessageType,
 } from '../../shared/communication/ServerMessage';
-import { UserId } from '../../shared/types';
+import { UserId, UserName } from '../../shared/types';
 import { ServerSocket } from './ServerSocket';
 import { ServerUser } from './ServerUser';
 
@@ -16,8 +16,8 @@ export function getUserById(uuid: UserId) {
   return users.find(x => x.id === uuid);
 }
 
-export function login(socket: ServerSocket, uuid: UserId) {
-  const user = new ServerUser(socket, uuid);
+export function login(socket: ServerSocket, uuid: UserId, name: UserName) {
+  const user = new ServerUser(socket, uuid, name);
 
   broadcast({
     type: ServerMessageType.USER_CONNECTED,

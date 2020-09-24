@@ -6,10 +6,12 @@ import {
 } from '../../../shared/models/Player';
 import { User } from '../../../shared/models/User';
 import { Orientation } from '../../../shared/Orientation';
+import { UserName } from '../../../shared/types';
 import { Vector } from '../../../shared/Vector';
 
 export class ClientPlayer implements Player {
   type!: EntityType.Player;
+  name!: UserName;
   isDead!: boolean;
   color!: '[string HexColor]';
   position!: Vector;

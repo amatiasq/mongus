@@ -73,14 +73,15 @@ function renderPlayer(player: Player) {
   const sprite = baseSprite.getColor(color);
   const spritePos = chain(getCenterOf(sprite), negate);
 
-  // context.fillStyle = color.rgb;
-  // context.textAlign = 'center';
+  context.fillStyle = color.rgb;
+  context.textAlign = 'center';
+  context.font = '18px arial';
 
-  // context.fillText(
-  //   user.id,
-  //   user.position.x,
-  //   user.position.y - 15 - player.height / 2,
-  // );
+  context.fillText(
+    player.name,
+    player.position.x,
+    player.position.y - 15 + spritePos.y,
+  );
 
   context.save();
 

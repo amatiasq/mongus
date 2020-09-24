@@ -24,7 +24,7 @@ export class ServerSocket {
   constructor(
     private readonly socket: NiceSocket<ClientMessage, ServerMessage>,
   ) {
-    this.socket.onJsonMessage(e => this.processMessagePotato(e));
+    this.socket.onJsonMessage(e => this.processMessageExtended(e));
   }
 
   onClose(listener: () => void) {
@@ -46,10 +46,8 @@ export class ServerSocket {
     this.socket.sendJson(data);
   }
 
-  private processMessagePotato(message: ClientMessage): void {
+  private processMessageExtended(message: ClientMessage): void {
     const listeners = this.listeners.get(message.type);
-
-    console.debug(message.type, message);
 
     if (listeners) {
       listeners.forEach(x => x(message));

@@ -18,7 +18,7 @@ https://github.com/webrtc/samples/blob/gh-pages/src/content/peerconnection/audio
 
 ### Stage 2
 
-- Display name
+- ~~Display name~~
 - ~~Interaction: killing~~
   - Proximity detection
   - Display if action is available

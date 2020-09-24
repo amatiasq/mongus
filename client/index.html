@@ -69,41 +69,6 @@
       }
 
       /**
-       * Layout
-       */
-
-      #app {
-        display: grid;
-        grid-template-columns: 1fr 3fr;
-        grid-template-rows: min-content 1fr;
-        grid-template-areas:
-          'header header'
-          'sidebar main';
-      }
-
-      header {
-        grid-area: header;
-        border-bottom: var(--border-width) solid var(--border-color);
-        padding-left: var(--gap);
-        display: flex;
-      }
-
-      #username {
-        flex: 1;
-      }
-
-      aside {
-        grid-area: sidebar;
-        border-right: var(--border-width) solid var(--border-color);
-        overflow: auto;
-      }
-
-      main {
-        grid-area: main;
-        overflow: auto;
-      }
-
-      /**
        * Login
        */
 
@@ -117,30 +82,6 @@
         font-size: 1.5rem;
         padding: var(--gap) var(--double-gap);
         border-left: 1px solid var(--border-color);
-      }
-
-      /**
-       * User list
-       */
-
-      #userlist button {
-        width: 100%;
-        font-size: 2em;
-        border-radius: 0;
-        border-bottom: 1px solid var(--border-color);
-        background-color: var(--control-color);
-      }
-
-      #userlist button:hover {
-        background-color: var(--border-color);
-      }
-
-      /**
-       * Log
-       */
-
-      #log > li {
-        margin-bottom: var(--half-gap);
       }
 
       /**
@@ -190,6 +131,19 @@
   </head>
   <body>
     <canvas></canvas>
+
+    <dialog id="login" aria-modal="true">
+      <form method="dialog">
+        <input
+          type="text"
+          id="username-input"
+          placeholder="Tu nombre"
+          required
+          autofocus
+        />
+        <button type="submit">Entrar</button>
+      </form>
+    </dialog>
 
     <template id="confirm-dialog">
       <dialog>

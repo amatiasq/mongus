@@ -2,6 +2,7 @@ import { Action } from '../../../shared/Action';
 import { EntityType } from '../../../shared/models/Entity';
 import { Player } from '../../../shared/models/Player';
 import { Orientation } from '../../../shared/Orientation';
+import { UserName } from '../../../shared/types';
 import { getRandomColor } from '../getRandomColor';
 
 const ALIVE_SPEED = 250;
@@ -19,6 +20,8 @@ export class ServerPlayer implements Player {
   }
 
   private actions = new Set<Action>();
+
+  constructor(readonly name: UserName) {}
 
   setActions(actions: Action[]) {
     this.actions = new Set(actions);

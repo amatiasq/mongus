@@ -29,13 +29,15 @@ webSocketServer.onConnection(nice => {
   socket.onClose(() => user && user.disconnected());
 
   socket.onMessageType(ClientMessageType.RECONNECT, data => {
-    const user = getUserById(data.uuid) || login(socket, data.uuid);
+    const user =
+      getUserById(data.uuid) || login(socket, data.uuid, data.username);
+
     user.reconnected(socket);
     onUserConnected(user, socket);
   });
 
   socket.onMessageType(ClientMessageType.LOGIN, data => {
-    user = login(socket, data.uuid);
+    user = login(socket, data.uuid, data.username);
     onUserConnected(user, socket);
   });
 

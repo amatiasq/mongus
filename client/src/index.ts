@@ -3,12 +3,12 @@ import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { DeadBody } from '../../shared/models/DeadBody';
 import { Entity } from '../../shared/models/Entity';
 import { User } from '../../shared/models/User';
-import { UserId } from '../../shared/types';
+import { UserId, UserName } from '../../shared/types';
 import { decompressList } from '../../shared/util';
 import { ClientSocket } from './ClientSocket';
 import { ClientUser } from './ClientUser';
 import { centerCameraAt, render } from './ui/canvas';
-import { watchKeyboard } from './ui/interactions';
+import { getUserName, watchKeyboard } from './ui/interactions';
 
 const FORCE_PROD_SERVER = false;
 const serverUri =
@@ -18,6 +18,8 @@ const serverUri =
 
 const socket = new ClientSocket(serverUri);
 const uuid = `${Math.random()}${Date.now()}` as UserId;
+
+let myName: UserName;
 let users: ClientUser[] = [];
 
 watchKeyboard(actions =>
@@ -28,9 +30,13 @@ watchKeyboard(actions =>
 );
 
 socket.onOpen(() =>
-  socket.send({
-    type: ClientMessageType.LOGIN,
-    uuid,
+  getUserName().then(username => {
+    myName = username;
+    socket.send({
+      type: ClientMessageType.LOGIN,
+      uuid,
+      username,
+    });
   }),
 );
 
@@ -38,6 +44,7 @@ socket.onReconnect(() =>
   socket.send({
     type: ClientMessageType.RECONNECT,
     uuid,
+    username: myName,
   }),
 );
 

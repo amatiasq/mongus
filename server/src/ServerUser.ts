@@ -1,20 +1,21 @@
+import equal from 'fast-deep-equal/es6';
+
 import { Action } from '../../shared/Action';
 import {
   ServerMessage,
   ServerMessageType,
 } from '../../shared/communication/ServerMessage';
 import { serializeUser, User } from '../../shared/models/User';
-import { UserId } from '../../shared/types';
+import { UserId, UserName } from '../../shared/types';
 import { compressList } from '../../shared/util';
 import { ServerPlayer } from './entities/ServerPlayer';
 import { ServerSocket } from './ServerSocket';
-import equal from 'fast-deep-equal/es6';
 
 const CONNECTION_TIMEOUT_SECONDS = 1;
 const AFK_AFTER_SECONDS = 10;
 
 export class ServerUser implements User {
-  player = new ServerPlayer();
+  player;
 
   private lastAction = Date.now();
   private disconnectedAt: number | null = null;
@@ -32,7 +33,13 @@ export class ServerUser implements User {
     return secondsSince(this.lastAction) > AFK_AFTER_SECONDS;
   }
 
-  constructor(private socket: ServerSocket, readonly id: UserId) {}
+  constructor(
+    private socket: ServerSocket,
+    readonly id: UserId,
+    name: UserName,
+  ) {
+    this.player = new ServerPlayer(name);
+  }
 
   setActions(actions: Action[]) {
     this.lastAction = Date.now();
