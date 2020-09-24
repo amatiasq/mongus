@@ -3,6 +3,7 @@ import { Color } from './Color';
 export class PlayerSprite {
   private readonly template = new Image();
   private readonly colors = new Map<string, HTMLCanvasElement>();
+  private readonly flip: boolean;
   isReady = false;
 
   get width() {
@@ -13,9 +14,10 @@ export class PlayerSprite {
     return this.template.height;
   }
 
-  constructor(src: string) {
+  constructor(src: string, { flip = false }: { flip?: boolean } = {}) {
     this.template.src = src;
     this.template.onload = () => (this.isReady = true);
+    this.flip = flip;
   }
 
   getColor(color: Color) {
@@ -39,6 +41,10 @@ export class PlayerSprite {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
     const { width, height } = this.template;
+
+    if (this.flip) {
+      context.scale(-1, 1);
+    }
 
     canvas.width = width;
     canvas.height = height;

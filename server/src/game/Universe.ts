@@ -1,11 +1,10 @@
-import { serializePlayer } from './../../../shared/models/Player';
 import {
   bodyFromPlayer,
   DeadBody,
   serializeDeadBody,
-} from './../../../shared/models/DeadBody';
-import { EntityList } from './EntityList';
+} from '../../../shared/models/DeadBody';
 import { ServerPlayer } from '../entities/ServerPlayer';
+import { EntityList } from './EntityList';
 
 export class Universe {
   private alive = new EntityList<ServerPlayer>();
@@ -35,8 +34,8 @@ export class Universe {
 
   toJSON() {
     return [
-      ...this.alive.toArray().map(serializePlayer),
-      ...this.dead.toArray().map(serializePlayer),
+      // ...this.alive.toArray().map(serializePlayer),
+      // ...this.dead.toArray().map(serializePlayer),
       ...this.bodies.toArray().map(serializeDeadBody),
     ];
   }

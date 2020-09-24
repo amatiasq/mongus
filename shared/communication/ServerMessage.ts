@@ -39,6 +39,7 @@ interface ServerMessage__USER_DISCONNECTED {
 
 interface ServerMessage__GAME_STEP {
   type: ServerMessageType.GAME_STEP;
+  users: User[];
   entities: Entity[];
 }
 

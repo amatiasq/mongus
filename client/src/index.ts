@@ -1,16 +1,15 @@
 import { ClientMessageType } from '../../shared/communication/ClientMessage';
 import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { DeadBody } from '../../shared/models/DeadBody';
-import { EntityType } from '../../shared/models/Entity';
-import { Player } from '../../shared/models/Player';
+import { User } from '../../shared/models/User';
 import { UserId } from '../../shared/types';
-import { render } from './canvas';
 import { ClientSocket } from './ClientSocket';
 import { ClientUser } from './ClientUser';
-import { watchKeyboard } from './interactions';
+import { centerCameraAt, render } from './ui/canvas';
+import { watchKeyboard } from './ui/interactions';
 
-// const socket = new ClientSocket('ws://localhost:17965');
-const socket = new ClientSocket('wss://amongus.amatiasq.com');
+const socket = new ClientSocket('ws://localhost:17965');
+// const socket = new ClientSocket('wss://amongus.amatiasq.com');
 const uuid = `${Math.random()}${Date.now()}${Math.random()}©AMONGUS®` as UserId;
 let users: ClientUser[] = [];
 
@@ -36,7 +35,7 @@ socket.onReconnect(() =>
 );
 
 socket.onMessageType(ServerMessageType.LOGIN_SUCCESS, data => {
-  users = data.users.map(x => new ClientUser(x, x.id === uuid));
+  users = getUsersFromServer(data.users);
   onUserListChanged();
 });
 
@@ -54,23 +53,27 @@ socket.onMessageType(ServerMessageType.USER_DISCONNECTED, data => {
 });
 
 socket.onMessageType(ServerMessageType.GAME_STEP, data => {
-  const players: Player[] = [];
-  const bodies: DeadBody[] = [];
+  users = getUsersFromServer(data.users);
 
-  data.entities.forEach(entity => {
-    if (entity.type === EntityType.Player) {
-      players.push(entity as Player);
-    } else {
-      bodies.push(entity as DeadBody);
-    }
-  });
+  const me = users.find(x => x.id === uuid);
+  const players = users.map(x => x.player);
+  const bodies = data.entities as DeadBody[];
 
+  if (!me) {
+    throw new Error(`Can't find player in user list. UUID-${uuid}`);
+  }
+
+  centerCameraAt(me.player.position);
   render(players, bodies);
 });
 
 window.onbeforeunload = () => {
   socket.send({ type: ClientMessageType.LOGOUT });
 };
+
+function getUsersFromServer(list: User[]) {
+  return list.map(x => new ClientUser(x, x.id === uuid));
+}
 
 function onUserListChanged() {
   console.log('users', users);

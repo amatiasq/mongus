@@ -1,6 +1,6 @@
 import { KeyboardActions, KeyCode } from '@amatiasq/keyboard';
 
-import { Action } from '../../shared/Action';
+import { Action } from '../../../shared/Action';
 
 const keyboard = new KeyboardActions<Action>();
 

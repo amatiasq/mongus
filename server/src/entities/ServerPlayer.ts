@@ -31,5 +31,5 @@ export class ServerPlayer implements Player {
 }
 
 function rand() {
-  return Math.round(Math.random() * 500);
+  return Math.round(Math.random() * 500) - 250;
 }

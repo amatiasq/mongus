@@ -4,7 +4,7 @@ import { gameStep } from './game/behaviour';
 import { startLoop } from './game/loop';
 import { Universe } from './game/Universe';
 import { createSocketServer, ServerSocket } from './ServerSocket';
-import { ServerUser } from './User';
+import { ServerUser } from './ServerUser';
 import { broadcast, getAllUsers, getUserById, login, logout } from './users';
 
 const webSocketServer = createSocketServer();
@@ -17,6 +17,7 @@ startLoop(delta => {
 
   broadcast({
     type: ServerMessageType.GAME_STEP,
+    users: getAllUsers().map(x => x.toJSON()),
     entities: universe.toJSON(),
   });
 });

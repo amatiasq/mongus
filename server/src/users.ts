@@ -4,7 +4,7 @@ import {
 } from '../../shared/communication/ServerMessage';
 import { UserId } from '../../shared/types';
 import { ServerSocket } from './ServerSocket';
-import { ServerUser } from './User';
+import { ServerUser } from './ServerUser';
 
 let users: ServerUser[] = [];
 

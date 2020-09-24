@@ -1,7 +1,7 @@
 import { Action } from '../../shared/Action';
 import { ServerMessage } from '../../shared/communication/ServerMessage';
+import { serializeUser, User } from '../../shared/models/User';
 import { UserId } from '../../shared/types';
-import { serializeUser, User } from './../../shared/models/User';
 import { ServerPlayer } from './entities/ServerPlayer';
 import { ServerSocket } from './ServerSocket';
 

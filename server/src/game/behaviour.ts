@@ -1,26 +1,26 @@
 import { Action } from '../../../shared/Action';
 import { Orientation } from '../../../shared/Orientation';
+import { chain } from '../../../shared/util';
+import { multiply, sum } from '../../../shared/Vector';
 import { ServerPlayer } from '../entities/ServerPlayer';
 import { Universe } from './Universe';
 
 const SPEED = 200;
+const vector45Deg = Math.sin(Math.PI / 4);
 
 export function gameStep(delta: number, universe: Universe) {
   universe.forEachPlayer(player => stepPlayer(delta, player, universe));
 }
 
 function stepPlayer(delta: number, player: ServerPlayer, universe: Universe) {
-  if (player.isDoing(Action.UP)) player.position.y -= SPEED * delta;
-  if (player.isDoing(Action.DOWN)) player.position.y += SPEED * delta;
+  const direction = calculatePlayerDirection(player);
 
-  if (player.isDoing(Action.LEFT)) {
-    player.orientation = Orientation.Left;
-    player.position.x -= SPEED * delta;
-  }
-
-  if (player.isDoing(Action.RIGHT)) {
-    player.orientation = Orientation.Right;
-    player.position.x += SPEED * delta;
+  if (direction.x || direction.y) {
+    player.position = chain(
+      direction,
+      multiply(SPEED * delta),
+      sum(player.position),
+    );
   }
 
   if (!player.isDead && player.isDoing(Action.KILL)) {
@@ -31,4 +31,28 @@ function stepPlayer(delta: number, player: ServerPlayer, universe: Universe) {
       player.done(Action.KILL);
     }
   }
+}
+
+function calculatePlayerDirection(player: ServerPlayer) {
+  const direction = { x: 0, y: 0 };
+
+  if (player.isDoing(Action.UP)) direction.y -= 1;
+  if (player.isDoing(Action.DOWN)) direction.y += 1;
+
+  if (player.isDoing(Action.LEFT)) {
+    player.orientation = Orientation.Left;
+    direction.x -= 1;
+  }
+
+  if (player.isDoing(Action.RIGHT)) {
+    player.orientation = Orientation.Right;
+    direction.x += 1;
+  }
+
+  if (direction.x && direction.y) {
+    direction.x = vector45Deg * direction.x;
+    direction.y = vector45Deg * direction.y;
+  }
+
+  return direction;
 }

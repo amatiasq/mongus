@@ -1,5 +1,5 @@
+import { Entity } from '../../../shared/models/Entity';
 import { getDistance, Vector } from '../../../shared/Vector';
-import { Entity } from './../../../shared/models/Entity';
 
 export class EntityList<T extends Entity = Entity> {
   private internal = new Set<T>();
