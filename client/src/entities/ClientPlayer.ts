@@ -14,6 +14,7 @@ export class ClientPlayer implements Player {
   color!: '[string HexColor]';
   position!: Vector;
   orientation!: Orientation;
+  speed!: number;
 
   get isUser() {
     return this.user != null;

@@ -9,6 +9,7 @@ import {
 export interface Player extends Entity {
   type: EntityType.Player;
   isDead: boolean;
+  speed: number;
 }
 
 export function createPlayer() {
@@ -20,12 +21,11 @@ export function createPlayer() {
 }
 
 export function serializePlayer(player: Player): Player {
-  const { isDead } = player;
-
   return {
     ...serializeEntity(player),
     type: EntityType.Player as const,
-    isDead,
+    isDead: player.isDead,
+    speed: player.speed,
   };
 }
 
@@ -36,5 +36,6 @@ export function deserializePlayer<T extends Player>(
   deserializeEntity(target, player);
   target.type = EntityType.Player;
   target.isDead = player.isDead;
+  target.speed = player.speed;
   return target;
 }

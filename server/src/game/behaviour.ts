@@ -5,7 +5,6 @@ import { multiply, sum } from '../../../shared/Vector';
 import { ServerPlayer } from '../entities/ServerPlayer';
 import { Universe } from './Universe';
 
-const SPEED = 200;
 const vector45Deg = Math.sin(Math.PI / 4);
 
 export function gameStep(delta: number, universe: Universe) {
@@ -18,7 +17,7 @@ function stepPlayer(delta: number, player: ServerPlayer, universe: Universe) {
   if (direction.x || direction.y) {
     player.position = chain(
       direction,
-      multiply(SPEED * delta),
+      multiply(player.speed * delta),
       sum(player.position),
     );
   }
