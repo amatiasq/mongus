@@ -156,6 +156,36 @@
       .confirm-button button {
         font-size: 1.5em;
       }
+
+      /**
+       * Obstacles
+       */
+
+      .obstacle {
+        border: 1px dotted #fff8;
+        outline: 1px dotted #0008;
+        position: absolute;
+      }
+      .obstacle .handle {
+        content: '';
+        position: absolute;
+        border: 1px solid #000d;
+        background-color: #fffd;
+        width: 10px;
+        height: 10px;
+        bottom: -6px;
+        right: -6px;
+      }
+      .circle:before {
+        content: '';
+        border: 3px solid red;
+        border-radius: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
     </style>
   </head>
   <body>
