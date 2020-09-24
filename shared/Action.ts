@@ -5,4 +5,5 @@ export enum Action {
   RIGHT,
   KILL,
   RESURRECT,
+  COMMIT_SUICIDE,
 }

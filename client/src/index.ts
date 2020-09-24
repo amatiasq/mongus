@@ -10,7 +10,9 @@ import { ClientUser } from './ClientUser';
 import { centerCameraAt, render } from './ui/canvas';
 import { getUserName, watchKeyboard } from './ui/interactions';
 
-const FORCE_PROD_SERVER = false;
+let FORCE_PROD_SERVER = false;
+// FORCE_PROD_SERVER = true;
+
 const serverUri =
   location.origin === 'https://amatiasq.github.io' || FORCE_PROD_SERVER
     ? 'wss://amongus.amatiasq.com'

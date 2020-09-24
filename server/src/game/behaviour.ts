@@ -22,16 +22,26 @@ function stepPlayer(delta: number, player: ServerPlayer, universe: Universe) {
     );
   }
 
-  if (player.isDead && player.isDoing(Action.RESURRECT)) {
-    player.isDead = false;
-    player.done(Action.RESURRECT);
-  } else if (!player.isDead && player.isDoing(Action.KILL)) {
+  if (player.isDead) {
+    if (player.isDoing(Action.RESURRECT)) {
+      player.isDead = false;
+      player.done(Action.RESURRECT);
+    }
+    return;
+  }
+
+  if (player.isDoing(Action.KILL)) {
     const victim = universe.getClosestAlive(player, 100);
 
     if (victim) {
       universe.kill(player, victim);
       player.done(Action.KILL);
     }
+  }
+
+  if (player.isDoing(Action.COMMIT_SUICIDE)) {
+    universe.kill(player, player);
+    player.done(Action.COMMIT_SUICIDE);
   }
 }
 
