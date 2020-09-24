@@ -1,3 +1,6 @@
+type BinaryOperator<T = Vector> = (x: T) => (x: Vector) => Vector;
+type Transformer = (x: Vector) => Vector;
+
 export interface Vector {
   x: number;
   y: number;
@@ -10,15 +13,19 @@ export function serializeVector(vector: Vector) {
   };
 }
 
-export const multiply = (value: number) => (target: Vector) => ({
+export const multiply: BinaryOperator<number> = value => target => ({
   x: target.x * value,
   y: target.y * value,
 });
 
-export const sum = (left: Vector) => (right: Vector) => ({
+export const plus: BinaryOperator = left => right => ({
   x: left.x + right.x,
   y: left.y + right.y,
 });
+
+export const minus = (left: Vector) => plus(negate(left));
+
+export const negate = multiply(-1);
 
 export function getMagnitude({ x, y }: Vector) {
   return Math.sqrt(x * x + y * y);
@@ -30,7 +37,7 @@ export function getCenterOf({
 }: {
   width: number;
   height: number;
-}) {
+}): Vector {
   return { x: width / 2, y: height / 2 };
 }
 

@@ -2,12 +2,9 @@ import { DeadBody } from '../../../shared/models/DeadBody';
 import { Player } from '../../../shared/models/Player';
 import { Orientation } from '../../../shared/Orientation';
 import { chain } from '../../../shared/util';
-import { getCenterOf, multiply, sum, Vector } from '../../../shared/Vector';
+import { getCenterOf, minus, negate, Vector } from '../../../shared/Vector';
 import { Color } from './Color';
 import { PlayerSprite } from './PlayerSprite';
-
-// const half = multiply(0.5);
-const negate = multiply(-1);
 
 const canvas = document.querySelector('canvas')!;
 const context = canvas.getContext('2d')!;
@@ -28,7 +25,7 @@ export function centerCameraAt({ x, y }: Vector) {
 }
 
 export function render(players: Player[], bodies: DeadBody[]) {
-  const offset = chain(getCenterOf(canvas), sum(negate(camera)));
+  const offset = chain(getCenterOf(canvas), minus(camera));
   const bgPos = chain(getCenterOf(background), negate);
 
   context.clearRect(0, 0, canvas.width, canvas.height);
