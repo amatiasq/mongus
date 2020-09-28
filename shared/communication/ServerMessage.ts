@@ -25,6 +25,7 @@ interface ServerMessage__HANDSHAKE {
 interface ServerMessage__LOGIN_RESULT__SUCCESS {
   type: ServerMessageType.LOGIN_SUCCESS;
   users: User[];
+  obstacles: any;
 }
 
 interface ServerMessage__USER_CONNECTED {

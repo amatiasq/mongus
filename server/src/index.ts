@@ -3,6 +3,7 @@ import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { gameStep } from './game/behaviour';
 import { startLoop } from './game/loop';
 import { Universe } from './game/Universe';
+import { setObstacles } from './obstacles';
 import { createSocketServer, ServerSocket } from './ServerSocket';
 import { ServerUser } from './ServerUser';
 import { broadcast, getAllUsers, getUserById, login, logout } from './users';
@@ -28,18 +29,22 @@ webSocketServer.onConnection(nice => {
 
   socket.onClose(() => user && user.disconnected());
 
-  socket.onMessageType(ClientMessageType.RECONNECT, data => {
+  socket.onMessageType(ClientMessageType.RECONNECT, async data => {
     const user =
-      getUserById(data.uuid) || login(socket, data.uuid, data.username);
+      getUserById(data.uuid) || (await login(socket, data.uuid, data.username));
 
     user.reconnected(socket);
     onUserConnected(user, socket);
   });
 
-  socket.onMessageType(ClientMessageType.LOGIN, data => {
-    user = login(socket, data.uuid, data.username);
+  socket.onMessageType(ClientMessageType.LOGIN, async data => {
+    user = await login(socket, data.uuid, data.username);
     onUserConnected(user, socket);
   });
+
+  socket.onMessageType(ClientMessageType.SET_OBSTACLES, ({ obstacles }) =>
+    setObstacles(obstacles),
+  );
 
   socket.send({ type: ServerMessageType.HANDSHAKE });
 });

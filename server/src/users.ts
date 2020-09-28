@@ -3,6 +3,7 @@ import {
   ServerMessageType,
 } from '../../shared/communication/ServerMessage';
 import { UserId, UserName } from '../../shared/types';
+import { getObstacles } from './obstacles';
 import { ServerSocket } from './ServerSocket';
 import { ServerUser } from './ServerUser';
 
@@ -16,7 +17,11 @@ export function getUserById(uuid: UserId) {
   return users.find(x => x.id === uuid);
 }
 
-export function login(socket: ServerSocket, uuid: UserId, name: UserName) {
+export async function login(
+  socket: ServerSocket,
+  uuid: UserId,
+  name: UserName,
+) {
   const user = new ServerUser(socket, uuid, name);
 
   broadcast({
@@ -29,6 +34,7 @@ export function login(socket: ServerSocket, uuid: UserId, name: UserName) {
   socket.send({
     type: ServerMessageType.LOGIN_SUCCESS,
     users: users.map(x => x.toJSON()),
+    obstacles: await getObstacles(),
   });
 
   return user;

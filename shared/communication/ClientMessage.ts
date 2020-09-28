@@ -1,6 +1,4 @@
-import { RoomMessage } from './RoomMessage';
 import { UserId, UserName } from '../types';
-import { ClientToClientMessage } from './ClientToClientMessage';
 import { Action } from '../Action';
 
 export enum ClientMessageType {
@@ -9,6 +7,7 @@ export enum ClientMessageType {
   LOGOUT = 'LOGOUT',
   RECONNECT = 'RECONNECT',
   USER_ACTIONS = 1,
+  SET_OBSTACLES = 'SET_OBSTACLES',
 }
 
 interface ClientMessage__ERROR {
@@ -37,22 +36,22 @@ interface ClientMessage__USER_ACTIONS {
   actions: Action[];
 }
 
-// interface ClientMessage__SEND_TO_ROOM {
-//   type: ClientMessageType.SEND_TO_ROOM;
-//   message: RoomMessage;
-// }
+interface ClientMessage__SET_OBSTACLES {
+  type: ClientMessageType.SET_OBSTACLES;
+  obstacles: Array<Rectangle>;
+}
 
-// interface ClientMessage__SEND_TO_USER {
-//   type: ClientMessageType.SEND_TO_USER;
-//   to: UserId;
-//   message: ClientToClientMessage;
-// }
+interface Rectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export type ClientMessage =
   | ClientMessage__ERROR
   | ClientMessage__LOGIN
   | ClientMessage__RECONNECT
   | ClientMessage__LOGOUT
-  | ClientMessage__USER_ACTIONS;
-// | ClientMessage__SEND_TO_ROOM
-// | ClientMessage__SEND_TO_USER;
+  | ClientMessage__USER_ACTIONS
+  | ClientMessage__SET_OBSTACLES;
