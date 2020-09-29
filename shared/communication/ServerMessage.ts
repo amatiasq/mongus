@@ -1,6 +1,7 @@
-import { UserId } from '../types';
 import { Entity } from '../models/Entity';
+import { Obstacle } from '../models/Obstacle';
 import { User } from '../models/User';
+import { UserId } from '../types';
 
 export enum ServerMessageType {
   ERROR = 'ERROR',
@@ -25,7 +26,7 @@ interface ServerMessage__HANDSHAKE {
 interface ServerMessage__LOGIN_RESULT__SUCCESS {
   type: ServerMessageType.LOGIN_SUCCESS;
   users: User[];
-  obstacles: any;
+  obstacles: Obstacle[];
 }
 
 interface ServerMessage__USER_CONNECTED {
