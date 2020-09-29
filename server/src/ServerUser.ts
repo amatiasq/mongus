@@ -61,10 +61,13 @@ export class ServerUser implements User {
   send(message: ServerMessage) {
     if (this.disconnectedAt) {
       this.missedMessages.push(message);
-    } else if (message.type === ServerMessageType.GAME_STEP) {
-      this.socket.send(this.compress(message));
-    } else {
+    } else if (message.type !== ServerMessageType.GAME_STEP) {
       this.socket.send(message);
+    } else {
+      const msg = this.compress(message);
+      if (msg) {
+        this.socket.send(msg);
+      }
     }
   }
 
@@ -78,13 +81,10 @@ export class ServerUser implements User {
       return data;
     }
 
-    return {
-      type: data.type,
-      users: compressList(equal, last.users, data.users),
-      entities: compressList(equal, last.entities, data.entities),
-    };
+    const users = compressList(equal, last.users, data.users);
+    const entities = compressList(equal, last.entities, data.entities);
 
-    return data;
+    return users || entities ? { type: data.type, users, entities } : null;
   }
 
   toJSON() {
