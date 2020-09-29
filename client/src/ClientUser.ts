@@ -6,6 +6,10 @@ export class ClientUser implements User {
   id!: UserId;
   player!: Player;
 
+  get name() {
+    return this.player.name;
+  }
+
   constructor(model: User, readonly isPlayer = false) {
     deserializeUser(this, model);
   }

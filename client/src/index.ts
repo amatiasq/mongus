@@ -3,10 +3,10 @@ import { ServerMessageType } from '../../shared/communication/ServerMessage';
 import { DeadBody } from '../../shared/models/DeadBody';
 import { Entity } from '../../shared/models/Entity';
 import { User } from '../../shared/models/User';
-import { UserId, UserName } from '../../shared/types';
 import { decompressList } from '../../shared/util';
 import { ClientSocket } from './ClientSocket';
 import { ClientUser } from './ClientUser';
+import { GameState } from './GameState';
 import { centerCameraAt, render } from './ui/canvas';
 import { getUserName, watchKeyboard } from './ui/interactions';
 
@@ -19,10 +19,7 @@ const serverUri =
     : 'ws://localhost:17965';
 
 const socket = new ClientSocket(serverUri);
-const uuid = `${Math.random()}${Date.now()}` as UserId;
-
-let myName: UserName;
-let users: ClientUser[] = [];
+const state = new GameState();
 
 watchKeyboard(actions =>
   socket.send({
@@ -33,10 +30,9 @@ watchKeyboard(actions =>
 
 socket.onOpen(() =>
   getUserName().then(username => {
-    myName = username;
     socket.send({
       type: ClientMessageType.LOGIN,
-      uuid,
+      uuid: state.uuid,
       username,
     });
   }),
@@ -45,28 +41,23 @@ socket.onOpen(() =>
 socket.onReconnect(() =>
   socket.send({
     type: ClientMessageType.RECONNECT,
-    uuid,
-    username: myName,
+    uuid: state.uuid,
+    username: state.me!.name,
   }),
 );
 
 socket.onMessageType(ServerMessageType.LOGIN_SUCCESS, data => {
-  users = getUsersFromServer(data.users);
-  onUserListChanged();
+  state.setUsers(data.users);
+  state.setObstacles(data.obstacles);
 });
 
-socket.onMessageType(ServerMessageType.USER_CONNECTED, data => {
-  users.push(new ClientUser(data.user));
-  onUserListChanged();
-});
+socket.onMessageType(ServerMessageType.USER_CONNECTED, data =>
+  state.addUser(new ClientUser(data.user)),
+);
 
-socket.onMessageType(ServerMessageType.USER_DISCONNECTED, data => {
-  const index = users.findIndex(x => x.id === data.uuid);
-  if (index !== -1) {
-    users.splice(index, 1);
-    onUserListChanged();
-  }
-});
+socket.onMessageType(ServerMessageType.USER_DISCONNECTED, data =>
+  state.removeUser(data.uuid),
+);
 
 let frameUsers: User[];
 let frameEntities: Entity[];
@@ -74,28 +65,20 @@ let frameEntities: Entity[];
 socket.onMessageType(ServerMessageType.GAME_STEP, data => {
   frameUsers = decompressList(data.users, frameUsers);
   frameEntities = decompressList(data.entities, frameEntities);
-  users = getUsersFromServer(frameUsers);
+  state.setUsers(frameUsers);
 
-  const me = users.find(x => x.id === uuid);
-  const players = users.map(x => x.player);
+  const players = state.users.map(x => x.player);
   const bodies = frameEntities as DeadBody[];
+  const { me } = state;
 
   if (!me) {
-    throw new Error(`Can't find player in user list. UUID-${uuid}`);
+    throw new Error(`Can't find player in user list. UUID-${state.uuid}`);
   }
 
   centerCameraAt(me.player.position);
-  render(players, bodies);
+  render(players, bodies, state.obstacles);
 });
 
 window.onbeforeunload = () => {
   socket.send({ type: ClientMessageType.LOGOUT });
 };
-
-function getUsersFromServer(list: User[]) {
-  return list.map(x => new ClientUser(x, x.id === uuid));
-}
-
-function onUserListChanged() {
-  console.log('users', users);
-}
