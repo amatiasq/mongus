@@ -47,18 +47,6 @@ export class Color {
     return this.brightness <= 0.5;
   }
 
-  get isReddish() {
-    return isPredominant(this.r, this.g, this.b);
-  }
-
-  get isBlueish() {
-    return isPredominant(this.b, this.r, this.g);
-  }
-
-  get isGreenish() {
-    return isPredominant(this.g, this.r, this.b);
-  }
-
   constructor(
     public readonly r: number,
     public readonly g: number,
@@ -105,6 +93,10 @@ export class Color {
   }
 
   toString() {
+    return this.rgb;
+  }
+
+  toJSON() {
     return this.rgb;
   }
 }
@@ -163,8 +155,4 @@ function generateHex(color: Color) {
 
   const hex = array.map(x => x.toString(HEXADECIMAL));
   return '#' + hex.join('');
-}
-
-function isPredominant(x: number, a: number, b: number) {
-  return x > 10 && x > a && x > b;
 }
