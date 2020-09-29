@@ -1,3 +1,4 @@
+import { Entity } from '../../shared/models/Entity';
 import { Obstacle } from '../../shared/models/Obstacle';
 import { User } from '../../shared/models/User';
 import { UserId } from '../../shared/types';
@@ -8,10 +9,19 @@ export class GameState {
 
   me: ClientUser | undefined;
   users: ClientUser[] = [];
+  entities: Entity[] = [];
   obstacles: Obstacle[] = [];
+
+  get players() {
+    return this.users.map(x => x.player);
+  }
 
   setObstacles(obstacles: Obstacle[]) {
     this.obstacles = obstacles;
+  }
+
+  setEntities(entities: Entity[]) {
+    this.entities = entities;
   }
 
   setUsers(users: User[]) {

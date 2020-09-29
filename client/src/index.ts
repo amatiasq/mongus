@@ -7,8 +7,8 @@ import { decompressList } from '../../shared/util';
 import { ClientSocket } from './ClientSocket';
 import { ClientUser } from './ClientUser';
 import { GameState } from './GameState';
-import { centerCameraAt, render } from './ui/canvas';
 import { getUserName, watchKeyboard } from './ui/interactions';
+import { Renderer } from './ui/Renderer';
 
 let FORCE_PROD_SERVER = false;
 // FORCE_PROD_SERVER = true;
@@ -20,6 +20,10 @@ const serverUri =
 
 const socket = new ClientSocket(serverUri);
 const state = new GameState();
+const renderer = new Renderer(document.querySelector('canvas')!);
+
+renderer.fillPage();
+// renderer.fullscreen();
 
 watchKeyboard(actions =>
   socket.send({
@@ -29,13 +33,18 @@ watchKeyboard(actions =>
 );
 
 socket.onOpen(() =>
-  getUserName().then(username => {
-    socket.send({
-      type: ClientMessageType.LOGIN,
-      uuid: state.uuid,
-      username,
-    });
-  }),
+  getUserName()
+    .then(async username => {
+      await renderer.whenLoaded;
+      return username;
+    })
+    .then(username => {
+      socket.send({
+        type: ClientMessageType.LOGIN,
+        uuid: state.uuid,
+        username,
+      });
+    }),
 );
 
 socket.onReconnect(() =>
@@ -65,18 +74,16 @@ let frameEntities: Entity[];
 socket.onMessageType(ServerMessageType.GAME_STEP, data => {
   frameUsers = decompressList(data.users, frameUsers);
   frameEntities = decompressList(data.entities, frameEntities);
+
   state.setUsers(frameUsers);
+  state.setEntities(frameEntities as DeadBody[]);
 
-  const players = state.users.map(x => x.player);
-  const bodies = frameEntities as DeadBody[];
-  const { me } = state;
-
-  if (!me) {
+  if (!state.me) {
     throw new Error(`Can't find player in user list. UUID-${state.uuid}`);
   }
 
-  centerCameraAt(me.player.position);
-  render(players, bodies, state.obstacles);
+  renderer.centerCameraAt(state.me.player.position);
+  renderer.render(state);
 });
 
 window.onbeforeunload = () => {

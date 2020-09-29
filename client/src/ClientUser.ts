@@ -1,10 +1,11 @@
 import { Player } from '../../shared/models/Player';
 import { deserializeUser, serializeUser, User } from '../../shared/models/User';
 import { UserId } from '../../shared/types';
+import { ClientPlayer } from './entities/ClientPlayer';
 
 export class ClientUser implements User {
   id!: UserId;
-  player!: Player;
+  player!: ClientPlayer;
 
   get name() {
     return this.player.name;
