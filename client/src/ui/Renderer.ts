@@ -23,7 +23,7 @@ export class Renderer {
 
   private camera: Vector = { x: 0, y: 0 };
 
-  get whenLoaded() {
+  get whenReady() {
     return this.sprites.whenLoaded;
   }
 

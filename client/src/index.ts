@@ -35,7 +35,7 @@ watchKeyboard(actions =>
 socket.onOpen(() =>
   getUserName()
     .then(async username => {
-      await renderer.whenLoaded;
+      await renderer.whenReady;
       return username;
     })
     .then(username => {
