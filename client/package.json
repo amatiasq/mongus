@@ -40,6 +40,7 @@
     "@amatiasq/emitter": "^4.0.1",
     "@amatiasq/json-socket": "^2.0.1",
     "@amatiasq/keyboard": "^1.0.1",
-    "@amatiasq/peer-connection": "^3.0.1"
+    "@amatiasq/peer-connection": "^3.0.1",
+    "@amatiasq/resilient-socket": "^0.1.2"
   }
 }
