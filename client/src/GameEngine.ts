@@ -1,3 +1,16 @@
+import { emitterWithChannels } from '@amatiasq/emitter';
+
+import { ClientMessage } from '../../shared/communication/ClientMessage';
+import {
+  MessageReader,
+  MessageWriter,
+} from '../../shared/communication/Message';
+import {
+  ServerMessage,
+  ServerMessageType,
+} from '../../shared/communication/ServerMessage';
+import { ClientSocket } from './ClientSocket';
+
 export enum EngineHook {
   RECEIVE_MESSAGE,
   SEND_MESSAGE,
@@ -6,9 +19,22 @@ export enum EngineHook {
 
 export type Hook<In, Out> = (x: In) => Out;
 
-export class GameEngine {
+export class GameEngine implements ClientSocket {
+  private readonly listeners = emitterWithChannels<ServerMessageType, any>();
   private readonly channels = new Map<EngineHook, Function[]>();
   private readonly pipes = new Map<EngineHook, Function[]>();
+
+  constructor() {
+    this.register<ServerMessage>(EngineHook.RECEIVE_MESSAGE, ({ type, data }) =>
+      this.listeners(type, data),
+    );
+  }
+
+  send: MessageWriter<ClientMessage> = (type, data) =>
+    this.trigger(EngineHook.SEND_MESSAGE, { type, data });
+
+  onMessage: MessageReader<ServerMessage> = (type, handler) =>
+    this.listeners.subscribe(type, handler);
 
   trigger<In>(hook: EngineHook, initial?: In) {
     const pipes = this.pipes.get(hook);
@@ -25,7 +51,7 @@ export class GameEngine {
     }
   }
 
-  register<In, Out = In>(hook: EngineHook, handler: (data: In) => Out) {
+  register<T>(hook: EngineHook, handler: (data: T) => void) {
     if (!this.channels.has(hook)) {
       this.channels.set(hook, [handler]);
       return;
@@ -36,69 +62,19 @@ export class GameEngine {
   }
 
   pipeline<In>(hook: EngineHook) {
-    this.pipes.set(hook, []);
+    if (!this.pipes.has(hook)) {
+      this.pipes.set(hook, []);
+    }
+
     return this.createPipe<In>(hook);
   }
 
   private createPipe<In>(hook: EngineHook) {
     return {
-      p ipe: <Out>(handler: (value: In) => Out) => {
+      then: <Out>(handler: (value: In) => Out) => {
         this.pipes.get(hook)!.push(handler);
         return this.createPipe<Out>(hook);
       },
     };
   }
 }
-
-// type F<In, Out> = (x: In) => Out;
-
-// // prettier-ignore
-// type Pipeline<In, Out, M extends any[]> =
-//   | [F<In, Out>]
-//   | [F<In, M[0]>, F<M[0], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], M[3]>, F<M[3], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], M[3]>, F<M[3], M[4]>, F<M[4], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], M[3]>, F<M[3], M[4]>, F<M[4], M[5]>, F<M[5], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], M[3]>, F<M[3], M[4]>, F<M[4], M[5]>, F<M[5], M[6]>, F<M[6], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], M[3]>, F<M[3], M[4]>, F<M[4], M[5]>, F<M[5], M[6]>, F<M[6], M[7]>, F<M[7], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], M[3]>, F<M[3], M[4]>, F<M[4], M[5]>, F<M[5], M[6]>, F<M[6], M[7]>, F<M[7], M[8]>, F<M[8], Out>]
-//   | [F<In, M[0]>, F<M[0], M[1]>, F<M[1], M[2]>, F<M[2], M[3]>, F<M[3], M[4]>, F<M[4], M[5]>, F<M[5], M[6]>, F<M[6], M[7]>, F<M[7], M[8]>, F<M[8], M[9]>, F<M[9], Out>]
-
-// const gameEngine = new GameEngine();
-
-// type Message = void;
-// type CompressedList = void;
-// type Serialized = void;
-// type Binary = void;
-
-// const potato = () => {};
-// const compress = () => {};
-// const serialize = () => {};
-// const toJSON = () => {};
-// const toBinary = () => {};
-
-// // gameEngine.register(BEFORE_SEND, superComplicatedFunction1);
-// gameEngine.register(EngineHook.SEND_MESSAGE, potato as Hook<void, Message>);
-// gameEngine.register(
-//   EngineHook.SEND_MESSAGE,
-//   compress as Hook<Message, CompressedList>,
-// );
-// gameEngine.register(
-//   EngineHook.SEND_MESSAGE,
-//   serialize as Hook<CompressedList, Serialized>,
-// );
-// // gameEngine.register(
-// //   EngineHook.SEND_MESSAGE,
-// //   toJSON as Hook<Serialized, string>,
-// // );
-// gameEngine.register(EngineHook.SEND_MESSAGE, toBinary as Hook<string, Binary>);
-
-// // // binary => string => compressedSerialiezList => SerializedList => Players
-// // gameEngine.register(BEFORE_RECEIVED, fromBinary);
-// // gameEngine.register(BEFORE_RECEIVED, fromJSON);
-// // gameEngine.register(BEFORE_RECEIVED, unserialize);
-// // gameEngine.register(BEFORE_RECEIVED, uncompress);
-
-// // gameEngine.register(BEFORE_RECEIVED, superComplicatedFunction5);

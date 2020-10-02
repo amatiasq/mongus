@@ -1,5 +1,6 @@
 import { UserId, UserName } from '../types';
 import { Action } from '../Action';
+import { Message } from './Message';
 
 export enum ClientMessageType {
   ERROR = 'ERROR',
@@ -10,35 +11,45 @@ export enum ClientMessageType {
   SET_OBSTACLES = 'SET_OBSTACLES',
 }
 
-interface ClientMessage__ERROR {
+interface ClientMessage__ERROR extends Message<ClientMessageType> {
   type: ClientMessageType.ERROR;
-  message: string;
+  data: {
+    message: string;
+  };
 }
 
-interface ClientMessage__LOGIN {
+interface ClientMessage__LOGIN extends Message<ClientMessageType> {
   type: ClientMessageType.LOGIN;
-  uuid: UserId;
-  username: UserName;
+  data: {
+    uuid: UserId;
+    username: UserName;
+  };
 }
 
-interface ClientMessage__RECONNECT {
-  type: ClientMessageType.RECONNECT;
-  uuid: UserId;
-  username: UserName;
-}
-
-interface ClientMessage__LOGOUT {
+interface ClientMessage__LOGOUT extends Message<ClientMessageType> {
   type: ClientMessageType.LOGOUT;
 }
 
-interface ClientMessage__USER_ACTIONS {
-  type: ClientMessageType.USER_ACTIONS;
-  actions: Action[];
+interface ClientMessage__RECONNECT extends Message<ClientMessageType> {
+  type: ClientMessageType.RECONNECT;
+  data: {
+    uuid: UserId;
+    username: UserName;
+  };
 }
 
-interface ClientMessage__SET_OBSTACLES {
+interface ClientMessage__USER_ACTIONS extends Message<ClientMessageType> {
+  type: ClientMessageType.USER_ACTIONS;
+  data: {
+    actions: Action[];
+  };
+}
+
+interface ClientMessage__SET_OBSTACLES extends Message<ClientMessageType> {
   type: ClientMessageType.SET_OBSTACLES;
-  obstacles: Array<Rectangle>;
+  data: {
+    obstacles: Array<Rectangle>;
+  };
 }
 
 interface Rectangle {

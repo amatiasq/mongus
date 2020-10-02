@@ -2,6 +2,7 @@ import { Entity } from '../models/Entity';
 import { Obstacle } from '../models/Obstacle';
 import { User } from '../models/User';
 import { UserId } from '../types';
+import { Message } from './Message';
 
 export enum ServerMessageType {
   ERROR = 'ERROR',
@@ -9,40 +10,49 @@ export enum ServerMessageType {
   LOGIN_SUCCESS = 'LOGIN_SUCCESS',
   USER_CONNECTED = 'USER_CONNECTED',
   USER_DISCONNECTED = 'USER_DISCONNECTED',
-  MESSAGE_FROM_USER = 'MESSAGE_FROM_USER',
-  MESSAGE_TO_ROOM = 'MESSAGE_TO_ROOM',
   GAME_STEP = 1,
 }
 
-interface ServerMessage__ERROR {
+interface ServerMessage__ERROR extends Message<ServerMessageType> {
   type: ServerMessageType.ERROR;
-  message: string;
+  data: {
+    message: string;
+  };
 }
 
-interface ServerMessage__HANDSHAKE {
+interface ServerMessage__HANDSHAKE extends Message<ServerMessageType> {
   type: ServerMessageType.HANDSHAKE;
 }
 
-interface ServerMessage__LOGIN_RESULT__SUCCESS {
+interface ServerMessage__LOGIN_RESULT__SUCCESS
+  extends Message<ServerMessageType> {
   type: ServerMessageType.LOGIN_SUCCESS;
-  users: User[];
-  obstacles: Obstacle[];
+  data: {
+    users: User[];
+    obstacles: Obstacle[];
+  };
 }
 
-interface ServerMessage__USER_CONNECTED {
+interface ServerMessage__USER_CONNECTED extends Message<ServerMessageType> {
   type: ServerMessageType.USER_CONNECTED;
-  user: User;
+  data: {
+    user: User;
+  };
 }
 
-interface ServerMessage__USER_DISCONNECTED {
+interface ServerMessage__USER_DISCONNECTED extends Message<ServerMessageType> {
   type: ServerMessageType.USER_DISCONNECTED;
-  uuid: UserId;
+  data: {
+    uuid: UserId;
+  };
 }
 
-interface ServerMessage__GAME_STEP {
+interface ServerMessage__GAME_STEP extends Message<ServerMessageType> {
   type: ServerMessageType.GAME_STEP;
-  users: User[];
-  entities: Entity[];
+  data: {
+    users: User[];
+    entities: Entity[];
+  };
 }
 
 export type ServerMessage =

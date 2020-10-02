@@ -1,3 +1,4 @@
+import { MessageWriter } from '../../shared/communication/Message';
 import {
   ServerMessage,
   ServerMessageType,
@@ -24,15 +25,11 @@ export async function login(
 ) {
   const user = new ServerUser(socket, uuid, name);
 
-  broadcast({
-    type: ServerMessageType.USER_CONNECTED,
-    user: user.toJSON(),
-  });
+  broadcast(ServerMessageType.USER_CONNECTED, { user: user.toJSON() });
 
   users.push(user);
 
-  socket.send({
-    type: ServerMessageType.LOGIN_SUCCESS,
+  socket.send(ServerMessageType.LOGIN_SUCCESS, {
     users: users.map(x => x.toJSON()),
     obstacles: await getObstacles(),
   });
@@ -46,10 +43,7 @@ export function logout(uuid: UserId) {
 
   users.splice(index, 1);
 
-  broadcast({
-    type: ServerMessageType.USER_DISCONNECTED,
-    uuid,
-  });
+  broadcast(ServerMessageType.USER_DISCONNECTED, { uuid });
 }
 
 export function clean() {
@@ -64,8 +58,8 @@ export function clean() {
   return remove;
 }
 
-export function broadcast(message: ServerMessage) {
+export const broadcast: MessageWriter<ServerMessage> = (type, data) => {
   for (const user of users) {
-    user.send(message);
+    user.send(type, data);
   }
-}
+};

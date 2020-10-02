@@ -1,10 +1,16 @@
-import { NiceSocket, NiceSocketServer } from '@amatiasq/nice-socket';
 import { createServer } from 'http';
+
+import { emitterWithChannels } from '@amatiasq/emitter';
+import { NiceSocket, NiceSocketServer } from '@amatiasq/nice-socket';
 
 import {
   ClientMessage,
   ClientMessageType,
 } from '../../shared/communication/ClientMessage';
+import {
+  MessageReader,
+  MessageWriter,
+} from '../../shared/communication/Message';
 import { ServerMessage } from '../../shared/communication/ServerMessage';
 
 export function createSocketServer() {
@@ -19,7 +25,10 @@ export function createSocketServer() {
 }
 
 export class ServerSocket {
-  private readonly listeners = new Map<ClientMessageType, Listener[]>();
+  private readonly listeners = emitterWithChannels<
+    ClientMessageType,
+    Function
+  >();
 
   constructor(
     private readonly socket: NiceSocket<ClientMessage, ServerMessage>,
@@ -31,35 +40,16 @@ export class ServerSocket {
     this.socket.on('close', listener);
   }
 
-  onMessageType<T extends ClientMessageType>(
-    type: T,
-    listener: (message: TypedMessage<T>) => void,
-  ) {
-    if (this.listeners.has(type)) {
-      this.listeners.get(type)!.push(listener as any);
-    } else {
-      this.listeners.set(type, [listener as any]);
-    }
-  }
+  onMessage: MessageReader<ClientMessage> = (type, listener) => {
+    this.listeners.subscribe(type, listener);
+  };
 
-  send(data: ServerMessage) {
-    this.socket.sendJson(data);
-  }
+  send: MessageWriter<ServerMessage> = (type, data) =>
+    this.socket.sendJson({ type, data } as ServerMessage);
 
   private processMessageExtended(message: ClientMessage): void {
-    const listeners = this.listeners.get(message.type);
-
-    if (listeners) {
-      listeners.forEach(x => x(message));
-    } else {
+    if (!this.listeners(message.type, message.data)) {
       console.log(`Unhandled message: ${message.type}`);
     }
   }
 }
-
-export type Listener = (message: ClientMessage) => void;
-
-export type TypedMessage<T extends ClientMessageType> = Extract<
-  ClientMessage,
-  { type: T }
->;

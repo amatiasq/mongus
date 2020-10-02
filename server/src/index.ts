@@ -16,8 +16,7 @@ startLoop(delta => {
 
   gameStep(delta, universe);
 
-  broadcast({
-    type: ServerMessageType.GAME_STEP,
+  broadcast(ServerMessageType.GAME_STEP, {
     users: getAllUsers().map(x => x.toJSON()),
     entities: universe.toJSON(),
   });
@@ -29,7 +28,7 @@ webSocketServer.onConnection(nice => {
 
   socket.onClose(() => user && user.disconnected());
 
-  socket.onMessageType(ClientMessageType.RECONNECT, async data => {
+  socket.onMessage(ClientMessageType.RECONNECT, async data => {
     const user =
       getUserById(data.uuid) || (await login(socket, data.uuid, data.username));
 
@@ -37,22 +36,22 @@ webSocketServer.onConnection(nice => {
     onUserConnected(user, socket);
   });
 
-  socket.onMessageType(ClientMessageType.LOGIN, async data => {
+  socket.onMessage(ClientMessageType.LOGIN, async data => {
     user = await login(socket, data.uuid, data.username);
     onUserConnected(user, socket);
   });
 
-  socket.onMessageType(ClientMessageType.SET_OBSTACLES, ({ obstacles }) =>
+  socket.onMessage(ClientMessageType.SET_OBSTACLES, ({ obstacles }) =>
     setObstacles(obstacles),
   );
 
-  socket.send({ type: ServerMessageType.HANDSHAKE });
+  socket.send(ServerMessageType.HANDSHAKE);
 });
 
 function onUserConnected(user: ServerUser, socket: ServerSocket) {
-  socket.onMessageType(ClientMessageType.USER_ACTIONS, data =>
+  socket.onMessage(ClientMessageType.USER_ACTIONS, data =>
     user.setActions(data.actions),
   );
 
-  socket.onMessageType(ClientMessageType.LOGOUT, data => logout(user.id));
+  socket.onMessage(ClientMessageType.LOGOUT, data => logout(user.id));
 }

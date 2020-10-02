@@ -1,6 +1,7 @@
 import equal from 'fast-deep-equal/es6';
 
 import { Action } from '../../shared/Action';
+import { MessageData, MessageWriter } from '../../shared/communication/Message';
 import {
   ServerMessage,
   ServerMessageType,
@@ -11,6 +12,8 @@ import { compressList } from '../../shared/util';
 import { ServerPlayer } from './entities/ServerPlayer';
 import { ServerSocket } from './ServerSocket';
 
+type GameStepData = MessageData<ServerMessage, ServerMessageType.GAME_STEP>;
+
 const CONNECTION_TIMEOUT_SECONDS = 1;
 const AFK_AFTER_SECONDS = 10;
 
@@ -20,7 +23,7 @@ export class ServerUser implements User {
   private lastAction = Date.now();
   private disconnectedAt: number | null = null;
   private readonly missedMessages: ServerMessage[] = [];
-  private lastFrame!: ServerMessage & { type: ServerMessageType.GAME_STEP };
+  private lastFrame!: GameStepData;
 
   get hasLostConnection() {
     return (
@@ -31,6 +34,10 @@ export class ServerUser implements User {
 
   get isAfk() {
     return secondsSince(this.lastAction) > AFK_AFTER_SECONDS;
+  }
+
+  private get isDisconnected() {
+    return Boolean(this.disconnectedAt);
   }
 
   constructor(
@@ -54,26 +61,24 @@ export class ServerUser implements User {
     this.disconnectedAt = null;
     this.socket = socket;
 
-    this.missedMessages.forEach(x => socket.send(x));
+    this.missedMessages.forEach(({ type, data }) => socket.send(type, data));
     this.missedMessages.length = 0;
   }
 
-  send(message: ServerMessage) {
-    if (this.disconnectedAt) {
-      this.missedMessages.push(message);
-    } else if (message.type !== ServerMessageType.GAME_STEP) {
-      this.socket.send(message);
+  send: MessageWriter<ServerMessage> = (type, data) => {
+    if (this.isDisconnected) {
+      this.missedMessages.push({ type, data } as ServerMessage);
+    } else if (type !== ServerMessageType.GAME_STEP) {
+      this.socket.send(type, data);
     } else {
-      const msg = this.compress(message);
-      if (msg) {
-        this.socket.send(msg);
+      const compressed = this.compress(data);
+      if (compressed) {
+        this.socket.send(type, compressed);
       }
     }
-  }
+  };
 
-  private compress(
-    data: ServerMessage & { type: ServerMessageType.GAME_STEP },
-  ) {
+  private compress(data: GameStepData) {
     const last = this.lastFrame;
     this.lastFrame = data;
 
@@ -84,7 +89,7 @@ export class ServerUser implements User {
     const users = compressList(equal, last.users, data.users);
     const entities = compressList(equal, last.entities, data.entities);
 
-    return users || entities ? { type: data.type, users, entities } : null;
+    return users || entities ? { users, entities } : null;
   }
 
   toJSON() {
