@@ -23,20 +23,16 @@ export function compress(message: ClientMessage) {
   return message;
 }
 
-let lastUsers: User[];
-let lastEntities: Entity[];
+let users: User[];
+let entities: Entity[];
 
 export function decompress(message: ServerMessage) {
   if (message.type != ServerMessageType.GAME_STEP) {
     return message;
   }
 
-  const { users, entities } = message.data;
-  lastUsers = decompressList(users, lastUsers);
-  lastEntities = decompressList(entities, lastEntities);
-
-  return {
-    ...message,
-    data: { ...message.data, users: lastUsers, entities: lastEntities },
-  };
+  const { data } = message;
+  users = decompressList(data.users, users);
+  entities = decompressList(data.entities, entities);
+  return { ...message, data: { ...message.data, users, entities } };
 }
