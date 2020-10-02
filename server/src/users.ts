@@ -4,9 +4,9 @@ import {
   ServerMessageType,
 } from '../../shared/communication/ServerMessage';
 import { UserId, UserName } from '../../shared/types';
+import { ServerUser } from './entities/ServerUser';
 import { getObstacles } from './obstacles';
 import { ServerSocket } from './ServerSocket';
-import { ServerUser } from './ServerUser';
 
 let users: ServerUser[] = [];
 

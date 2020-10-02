@@ -1,7 +1,10 @@
-import { Player } from '../../shared/models/Player';
-import { deserializeUser, serializeUser, User } from '../../shared/models/User';
-import { UserId } from '../../shared/types';
-import { ClientPlayer } from './entities/ClientPlayer';
+import {
+  deserializeUser,
+  serializeUser,
+  User,
+} from '../../../shared/models/User';
+import { UserId } from '../../../shared/types';
+import { ClientPlayer } from './ClientPlayer';
 
 export class ClientUser implements User {
   id!: UserId;

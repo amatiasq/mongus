@@ -1,16 +1,19 @@
 import equal from 'fast-deep-equal/es6';
 
-import { Action } from '../../shared/Action';
-import { MessageData, MessageWriter } from '../../shared/communication/Message';
+import { Action } from '../../../shared/Action';
+import {
+  MessageData,
+  MessageWriter,
+} from '../../../shared/communication/Message';
 import {
   ServerMessage,
   ServerMessageType,
-} from '../../shared/communication/ServerMessage';
-import { serializeUser, User } from '../../shared/models/User';
-import { UserId, UserName } from '../../shared/types';
-import { compressList } from '../../shared/util';
-import { ServerPlayer } from './entities/ServerPlayer';
-import { ServerSocket } from './ServerSocket';
+} from '../../../shared/communication/ServerMessage';
+import { serializeUser, User } from '../../../shared/models/User';
+import { UserId, UserName } from '../../../shared/types';
+import { compressList } from '../../../shared/util';
+import { ServerSocket } from '../ServerSocket';
+import { ServerPlayer } from './ServerPlayer';
 
 type GameStepData = MessageData<ServerMessage, ServerMessageType.GAME_STEP>;
 

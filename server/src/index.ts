@@ -1,11 +1,11 @@
 import { ClientMessageType } from '../../shared/communication/ClientMessage';
 import { ServerMessageType } from '../../shared/communication/ServerMessage';
+import { ServerUser } from './entities/ServerUser';
 import { gameStep } from './game/behaviour';
 import { startLoop } from './game/loop';
 import { Universe } from './game/Universe';
 import { setObstacles } from './obstacles';
 import { createSocketServer, ServerSocket } from './ServerSocket';
-import { ServerUser } from './ServerUser';
 import { broadcast, getAllUsers, getUserById, login, logout } from './users';
 
 const webSocketServer = createSocketServer();

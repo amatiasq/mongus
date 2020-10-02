@@ -2,7 +2,7 @@ import { Entity } from '../../shared/models/Entity';
 import { Obstacle } from '../../shared/models/Obstacle';
 import { User } from '../../shared/models/User';
 import { UserId } from '../../shared/types';
-import { ClientUser } from './ClientUser';
+import { ClientUser } from './entities/ClientUser';
 
 export class GameState {
   readonly uuid = `${Math.random()}${Date.now()}` as UserId;
